@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>voicechat2</title>
+
+    <!-- 移除 Opus 编码器的引用 -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/symbl-opus-encdec@0.1.2/src/recorder.min.js"></script> -->
+    <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@ricky0123/vad-web@0.0.7/dist/bundle.min.js"></script>
+    <style>
+        /* 保持原有样式不变 */
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .container {
+            text-align: center;
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            width: 100%;
+        }
+        #status, #timer, #latency {
+            margin-top: 1rem;
+            font-weight: bold;
+        }
+        #logArea {
+            width: 100%;
+            height: 400px;
+            margin-top: 1rem;
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            overflow-y: auto;
+            text-align: left;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+        #conversationLog {
+            width: 100%;
+            height: 300px;
+            border: 1px solid #ccc;
+            overflow-y: auto;
+            margin-top: 1rem;
+            padding: 0.5rem;
+            font-family: Arial, sans-serif;
+        }
+        .user-message {
+            color: blue;
+        }
+        .ai-message {
+            color: green;
+        }
+        #latencyMetrics {
+            margin-top: 10px;
+            font-size: 0.9em;
+            font-family: monospace;
+        }
+        #latencyMetrics table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        #latencyMetrics th, #latencyMetrics td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        #latencyMetrics th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+
+        button {
+            display: block;
+            font-size: 1rem;
+            padding: 0.5rem 1rem;
+            margin: 1.0rem auto;
+            width: 18rem;
+            cursor: pointer;
+        }
+        button {
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+        button:active {
+            background-color: #ff0000;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="timer">00:00:000</div>
+        <button id="vadToggle">Enable Voice Auto Detection</button>
+        <button id="recordButton">Press and Hold to Chat</button>
+        <p>You can also hold the space bar to chat!</p>
+        <div id="latencyMetrics">
+            <table>
+                <tr>
+                    <th>Metric</th>
+                    <th>Value</th>
+                </tr>
+                <tr>
+                    <td>Voice-to-Voice</td>
+                    <td id="totalVoiceToVoice">0ms</td>
+                </tr>
+                <tr>
+                    <td>Network Latency</td>
+                    <td id="networkLatency">0ms</td>
+                </tr>
+            </table>
+        </div>
+        <div id="status">Ready</div>
+        <div id="conversationLog"></div>
+        <div id="logArea"></div>
+    </div>
+
+    <script>
+        // Elements to update
+        const vadToggle = document.getElementById('vadToggle');
+        const recordButton = document.getElementById('recordButton');
+        const status = document.getElementById('status');
+        const logArea = document.getElementById('logArea');
+        const timerDisplay = document.getElementById('timer');
+
+        // Network
+        let startTime;
+        let socket;
+        let isProcessing = false;
+        let latencyIntervalId = null;
+        let ping = null;
+
+        // Recording
+        let isRecording = false;
+        let recordingStartTime;
+        let timerInterval;
+        let recorder;
+
+        // VAD
+        let isVADEnabled = false;
+        let myvad;
+
+        // Text 
+        let currentAIResponse = '';
+        let aiMessageElement = null;
+        let isAIResponding = false;
+
+        // Playback
+        let audioQueue = [];
+        let isPlaying = false;
+
+        // Ping every second
+        function startLatencyMeasurement() {
+            if (latencyIntervalId === null) {
+                latencyIntervalId = setInterval(measureLatency, 6000);
+            }
+        }
+
+        function stopLatencyMeasurement() {
+            // 停止发送 ping
+            // if (latencyIntervalId !== null) {
+            //     clearInterval(latencyIntervalId);
+            //     latencyIntervalId = null;
+            // }
+        }
+
+        function measureLatency() {
+            if (!isProcessing && socket && socket.readyState === WebSocket.OPEN) {
+                ping = performance.now();
+                socket.send(JSON.stringify({ method: 'ping' }));
+            }
+        }
+
+        function updateLatencyDisplay(latency) {
+            const latencyElement = document.getElementById('networkLatency');
+            if (latencyElement) {
+                latencyElement.textContent = `${latency.toFixed(2)}ms`;
+            }
+        }
+
+        // VAD toggling
+        vadToggle.addEventListener('click', toggleVAD);
+
+        async function toggleVAD() {
+            if (isVADEnabled) {
+                isVADEnabled = false;
+                vadToggle.textContent = 'Enable Voice Auto Detection';
+                vadToggle.style.background = '';
+                vadToggle.style.color = '';
+                if (myvad) {
+                    await myvad.pause();
+                }
+                updateStatus('VAD disabled');
+            } else {
+                isVADEnabled = true;
+                vadToggle.textContent = 'Disable Voice Auto Detection';
+                vadToggle.style.background = 'red';
+                vadToggle.style.color = 'white';
+                initializeVAD();
+                updateStatus('VAD enabled');
+            }
+        }
+
+        async function initializeVAD() {
+            try {
+                if (!myvad) {
+                    myvad = await vad.MicVAD.new({
+                        onSpeechEnd: async () => { // 修改回调，不再接收 audio 参数
+                            console.log('Speech ended');
+                            log('Speech ended');
+                            clearTimeout(timerInterval);
+                            await stopRecording(); // 结束录音并发送 PCM 数据
+                        },
+                        onVADMisfire: () => {
+                            log('VAD misfire detected');
+                        }
+                    });
+                }
+                await myvad.start();
+                updateStatus('VAD initialized and started');
+            } catch (error) {
+                console.error('Error initializing VAD:', error);
+                log('Error initializing VAD: ' + error.message);
+                updateStatus('Error initializing VAD');
+            }
+        }
+
+        function updateStatus(message) {
+            status.textContent = message;
+        }
+
+        // Recorder initialization with enhanced logging
+        async function initializeRecorder() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+                const source = audioContext.createMediaStreamSource(stream);
+                const processor = audioContext.createScriptProcessor(4096, 1, 1);
+
+                let audioBuffer = [];
+
+                processor.onaudioprocess = (e) => {
+                    const channelData = e.inputBuffer.getChannelData(0);
+                    if (channelData && channelData.length > 0) {
+                        // log(`Captured audio chunk: ${channelData.length} samples`);
+                        audioBuffer.push(new Float32Array(channelData));
+                    } else {
+                        log('Captured empty audio chunk.');
+                    }
+                };
+
+                source.connect(processor);
+                processor.connect(audioContext.destination);
+
+                // 将录音相关的变量储存在全局对象中
+                window.audioContext = audioContext;
+                window.processor = processor;
+                window.audioBuffer = audioBuffer; // 确保引用正确
+
+                log('Recorder initialized for PCM recording');
+            } catch (error) {
+                log(`Error initializing recorder: ${error.message}`);
+            }
+        }
+
+        // Recording start
+        function startRecording() {
+            if (!isRecording) {
+                initializeRecorder();
+                log('Recorder object initialized');
+
+                stopLatencyMeasurement();
+
+                // 清除之前的数据
+                currentAIResponse = '';
+                aiMessageElement = null;
+                isAIResponding = false;
+
+                isRecording = true;
+                recordingStartTime = Date.now();
+                updateTimerDisplay();
+                log('Recording started');
+                updateStatus('Recording...');
+            }
+        }
+
+        // Recording stop
+        async function stopRecording() {
+            if (isRecording) {
+                isRecording = false;
+                try {
+                    window.processor.disconnect();
+                    await window.audioContext.close().catch(error => {
+                        log(`Error closing audio context: ${error.message}`);
+                    });
+                    log('Recording stopped successfully');
+                    updateStatus('Processing...');
+                    clearTimeout(timerInterval); // 使用 clearTimeout 代替 clearInterval
+
+                    // 合并所有的 PCM 数据
+                    let mergedBuffer = mergeBuffers(window.audioBuffer);
+                    log(`Merged buffer length: ${mergedBuffer.length}`);
+
+                    // 将 Float32Array 转换为 Int16Array
+                    let int16Buffer = convertFloat32ToInt16(mergedBuffer);
+                    log(`Converted buffer length (Int16): ${int16Buffer.length}`);
+
+                    // 创建 PCM ArrayBuffer
+                    let pcmArrayBuffer = int16Buffer.buffer;
+                    log(`PCM ArrayBuffer byteLength: ${pcmArrayBuffer.byteLength}`);
+
+                    // 确保 WebSocket 已连接
+                    if (!socket || socket.readyState !== WebSocket.OPEN) {
+                        log('WebSocket is not open. Reinitializing...');
+                        try {
+                            await initializeWebSocketAsync();
+                        } catch (error) {
+                            log(`Error reinitializing WebSocket: ${error.message}`);
+                            return;
+                        }
+                    }
+
+                    if (socket && socket.readyState === WebSocket.OPEN) {
+                        log(`Sending PCM audio data: ${pcmArrayBuffer.byteLength} bytes`);
+                        // if (pcmArrayBuffer.byteLength > 0) {
+                        //     socket.send(pcmArrayBuffer);
+                        //     log('PCM audio data sent successfully');
+                        // } else {
+                        //     log('PCM ArrayBuffer is empty. No data sent.');
+                        // }
+                        // // 发送 stop_recording 消息
+                        // socket.send(JSON.stringify({ action: "stop_recording" }));
+                        // log('Sent stop_recording message');
+                        const pcm_uint8Array = new Uint8Array(pcmArrayBuffer);
+                        const pcm_binary = pcm_uint8Array.reduce((str, byte) => str + String.fromCharCode(byte), '');
+                        socket.send(JSON.stringify({
+                            version:"1.0",
+                            method:"voice-chat",
+                            conversation_id:conversation_id,
+                            message_id:getMessageId(),
+                            token:getMessageId(),
+                            data: {
+                                audio_data: btoa(pcm_binary)
+                            }
+                        }));
+                        log('voice-chat PCM audio data sent successfully');
+                    } else {
+                        log('WebSocket is not open. Cannot send audio.');
+                    }
+                } catch (error) {
+                    log(`Error stopping recording: ${error.message}`);
+                }
+            }
+        }
+
+        function updateTimerDisplay() {
+            if (isRecording) {
+                const elapsed = Date.now() - recordingStartTime;
+                const minutes = Math.floor(elapsed / 60000);
+                const seconds = Math.floor((elapsed % 60000) / 1000);
+                const milliseconds = elapsed % 1000;
+                timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}:${milliseconds.toString().padStart(3, '0')}`;
+                timerInterval = setTimeout(updateTimerDisplay, 100); // 使用 setTimeout 代替 setInterval
+            }
+        }
+
+        // Button event listeners
+        recordButton.addEventListener('mousedown', startRecording);
+        recordButton.addEventListener('mouseup', stopRecording);
+        recordButton.addEventListener('mouseleave', stopRecording);
+
+        // Spacebar event listeners
+        document.addEventListener('keydown', (event) => {
+            if (event.code === 'Space' && !isRecording) {
+                event.preventDefault(); // Prevent scrolling
+                startRecording();
+            }
+        });
+
+        document.addEventListener('keyup', (event) => {
+            if (event.code === 'Space') {
+                event.preventDefault();
+                stopRecording();
+            }
+        });
+
+        // Touch event listeners for mobile devices
+        recordButton.addEventListener('touchstart', (event) => {
+            event.preventDefault();
+            startRecording();
+        });
+
+        recordButton.addEventListener('touchend', (event) => {
+            event.preventDefault();
+            stopRecording();
+        });
+
+        // Play next audio
+        function playNextAudio() {
+            if (!isPlaying) {
+                startVAD(); // Ensure VAD is active while playing
+            }
+
+            if (audioQueue.length === 0 || isPlaying) {
+                return;
+            }
+
+            isPlaying = true;
+            pauseVAD(); // Pause VAD during playback
+
+            const audioBlob = audioQueue.shift();
+            const audioURL = URL.createObjectURL(audioBlob);
+            const audio = new Audio(audioURL);
+
+            audio.onended = () => {
+                isPlaying = false;
+                playNextAudio(); // Play the next audio in the queue
+            };
+
+            audio.onerror = (error) => {
+                log(`Error playing audio: ${error.message}`);
+                isPlaying = false;
+                playNextAudio(); // Try to play the next audio in case of an error
+            };
+
+            audio.play().catch((error) => {
+                log(`Error starting audio playback: ${error.message}`);
+                isPlaying = false;
+                playNextAudio(); // Try to play the next audio in case of an error
+            });
+        }
+
+        function queueAudioForPlayback(audioBlob) {
+            audioQueue.push(audioBlob);
+            playNextAudio(); // Try to play if not already playing
+        }
+
+        function log(message) {
+            const timestamp = new Date().toISOString();
+            logArea.innerHTML = `${timestamp} - ${message}<br>` + logArea.innerHTML;
+            console.log(`${timestamp} - ${message}`); // 也在控制台输出日志，便于调试
+        }
+
+        // PCM encoding helper functions
+        function convertFloat32ToInt16(buffer) {
+            let l = buffer.length;
+            let buf = new Int16Array(l);
+            for (let i = 0; i < l; i++) {
+                let s = Math.max(-1, Math.min(1, buffer[i]));
+                buf[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+            }
+            return buf;
+        }
+
+        function mergeBuffers(bufferArray) {
+            let length = 0;
+            bufferArray.forEach(buffer => {
+                length += buffer.length;
+            });
+            let result = new Float32Array(length);
+            let offset = 0;
+            bufferArray.forEach(buffer => {
+                result.set(buffer, offset);
+                offset += buffer.length;
+            });
+            return result;
+        }
+
+        function getId() {
+            const now = new Date()
+            const timestamp = now.toISOString()
+                .replace(/[-:]/g, '')
+                .replace('T', '-')
+                .replace(/\..+/, '')
+            const uuid = getConversationId()
+            return `${timestamp}-${uuid}`
+        }
+
+        function getConversationId() {
+            if(crypto.randomUUID) {
+                return crypto.randomUUID();
+            }
+            return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+                (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+            );
+        }
+
+        function getMessageId() {
+            return getId() 
+        }
+
+        let conversation_id;
+        // Initialize WebSocket
+        function initializeWebSocketAsync() {
+            return new Promise((resolve, reject) => {
+                let currentUrl = window.location;
+                let wsProtocol = currentUrl.protocol === 'https:' ? 'wss:' : 'ws:';
+                let wsUrl = `ws://localhost:9001/ws`;
+                socket = new WebSocket(wsUrl);
+
+                // 设置 binaryType 为 'arraybuffer' 以便接收和发送二进制数据
+                socket.binaryType = 'arraybuffer';
+
+                socket.onopen = () => {
+                    conversation_id = getConversationId()
+                    log(`WebSocket connected converstation_id:${conversation_id}`);
+                    updateStatus('Ready');
+                    recordButton.disabled = false;
+                    startLatencyMeasurement();
+                    resolve(socket);
+                };
+
+                socket.onclose = (event) => {
+                    log(`WebSocket disconnected. Code: ${event.code}, Reason: ${event.reason}`);
+                    updateStatus('Disconnected');
+                    recordButton.disabled = true;
+                    stopLatencyMeasurement();
+                    reject(new Error('WebSocket closed'));
+                };
+
+                socket.onerror = (error) => {
+                    log(`WebSocket error: ${error.message}`);
+                    updateStatus('Error');
+                    reject(error);
+                };
+
+                socket.onmessage = (event) => {
+                    log(`Parsed server message: ${JSON.stringify(JSON.parse(event.data))}`);
+
+                    if (event.data instanceof ArrayBuffer) {
+                        // 处理 PCM 数据
+                        handleReceivedPCM(event.data);
+                    } else if (event.data instanceof Blob) {
+                        // 处理 Blob 数据（如果服务器发送的是 Blob）
+                        handleReceivedPCM(event.data);
+                    } else {
+                        // 处理 JSON 消息
+                        try {
+                            const message = JSON.parse(event.data);
+                            log(`Received server message json`);
+                            if (message.method === 'pong') {
+                                const latency = performance.now() - ping;
+                                updateLatencyDisplay(latency);
+                            } else if (message.type === 'text') {
+                                // 处理来自 LLM 的流式文本
+                                updateAIResponse(message.content);
+                            } else if (message.type === 'transcription') {
+                                // 处理转录的用户输入
+                                displayMessage('User', message.content);
+                                // 重置 AI 响应
+                                currentAIResponse = '';
+                                aiMessageElement = null;
+                                isAIResponding = true;
+                            } else if (message.type === 'first_audio_response') {
+                                firstResponseTime = Date.now();
+                            } else if (message.type === 'latency_metrics') {
+                                updateLatencyMetrics(message.metrics);
+                            } else if (message.type === 'processing_complete') {
+                                updateStatus('Ready');
+                                isProcessing = false;
+                                startLatencyMeasurement();
+                                isAIResponding = false;
+                                // 移除光标
+                                if (aiMessageElement) {
+                                    const cursor = aiMessageElement.querySelector('.ai-cursor');
+                                    if (cursor) cursor.remove();
+                                }
+                            } else if (message.type === 'error') {
+                                log(`Error from server: ${message.message}`);
+                                updateStatus('Error');
+                            }else if (message.method === 'voice-chat') {
+                                log(`Received voice-chat message`);
+                                // updateAIResponse(message.data.text);
+                                handleReceivedPCM(message.data.audio_data);
+                            } else {
+                                log(`Received unknown message type: ${message.type}`);
+                            }
+                        } catch (error) {
+                            log(`Parsed server message: ${JSON.stringify(JSON.parse(event.data))}`);
+                        }
+                    }
+                };
+            });
+        }
+
+        // 处理接收到的 PCM 数据
+        async function handleReceivedPCM(data) {
+            if (!data) {
+                log('Received empty PCM data.');
+                return;
+            }
+
+            let arrayBuffer;
+            if (data instanceof ArrayBuffer) {
+                arrayBuffer = data;
+            } else if (data instanceof Blob) {
+                arrayBuffer = await data.arrayBuffer();
+            } else if (typeof data === 'string') {
+                // 如果 data 是 base64 编码的字符串
+                try {
+                    const binaryString = atob(data);
+                    const len = binaryString.length;
+                    const bytes = new Uint8Array(len);
+                    for (let i = 0; i < len; i++) {
+                        bytes[i] = binaryString.charCodeAt(i);
+                    }
+                    arrayBuffer = bytes.buffer;
+                } catch (error) {
+                    log('Error decoding base64 PCM data:', error);
+                    return;
+                }
+            } else {
+                log('Received unsupported data format for PCM.');
+                return;
+            }
+
+            if (arrayBuffer.byteLength === 0) {
+                log('Received PCM ArrayBuffer is empty.');
+                return;
+            }
+
+            // 将 PCM 数据封装为 WAV 格式以便解码和播放
+            const wavBlob = encodeWAVfromPCM(arrayBuffer, 16000, 1, 16); // 16kHz, mono, 16 bits
+            const wavArrayBuffer = await wavBlob.arrayBuffer();
+
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)({
+                sampleRate: 16000
+            });
+
+            try {
+                const audioBuffer = await audioCtx.decodeAudioData(wavArrayBuffer);
+                const source = audioCtx.createBufferSource();
+                source.buffer = audioBuffer;
+                source.connect(audioCtx.destination);
+                source.start();
+                log('Played received PCM audio.');
+            } catch (error) {
+                log(`Error decoding PCM audio: ${error.message}`);
+            }
+        }
+
+        // 创建 WAV Blob 从原始 PCM ArrayBuffer
+        function encodeWAVfromPCM(pcmArrayBuffer, sampleRate, numChannels, bitsPerSample) {
+            const wavBytes = pcmArrayBuffer.byteLength;
+            const buffer = new ArrayBuffer(44 + wavBytes);
+            const view = new DataView(buffer);
+
+            /* RIFF identifier */
+            writeString(view, 0, 'RIFF');
+            /* file length */
+            view.setUint32(4, 36 + wavBytes, true);
+            /* RIFF type */
+            writeString(view, 8, 'WAVE');
+            /* format chunk identifier */
+            writeString(view, 12, 'fmt ');
+            /* format chunk length */
+            view.setUint32(16, 16, true);
+            /* sample format (raw) */
+            view.setUint16(20, 1, true);
+            /* channel count */
+            view.setUint16(22, numChannels, true);
+            /* sample rate */
+            view.setUint32(24, sampleRate, true);
+            /* byte rate (sample rate * block align) */
+            view.setUint32(28, sampleRate * numChannels * bitsPerSample / 8, true);
+            /* block align (channel count * bytes per sample) */
+            view.setUint16(32, numChannels * bitsPerSample / 8, true);
+            /* bits per sample */
+            view.setUint16(34, bitsPerSample, true);
+            /* data chunk identifier */
+            writeString(view, 36, 'data');
+            /* data chunk length */
+            view.setUint32(40, wavBytes, true);
+
+            // 写入 PCM 数据
+            const pcmView = new Uint8Array(pcmArrayBuffer);
+            const wavView = new Uint8Array(buffer, 44);
+            wavView.set(pcmView);
+
+            return new Blob([buffer], { type: 'audio/wav' });
+        }
+
+        // 写字符串到 DataView
+        function writeString(view, offset, string) {
+            for (let i = 0; i < string.length; i++) {
+                view.setUint8(offset + i, string.charCodeAt(i));
+            }
+        }
+
+        function mergeBuffers(bufferArray) {
+            let length = 0;
+            bufferArray.forEach(buffer => {
+                length += buffer.length;
+            });
+            let result = new Float32Array(length);
+            let offset = 0;
+            bufferArray.forEach(buffer => {
+                result.set(buffer, offset);
+                offset += buffer.length;
+            });
+            return result;
+        }
+
+        // Initialize recorder and WebSocket when the page loads
+        window.onload = async () => {
+            try {
+                // await initializeRecorder();
+                // log('Recorder object initialized');
+                await initializeWebSocketAsync();
+                log('Application initialized');
+            } catch (error) {
+                log(`Error initializing application: ${error.message}`);
+            }
+        };
+    </script>
+</body>
+</html>

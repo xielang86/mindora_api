@@ -1,0 +1,25 @@
+aiortc
+fastapi
+uvicorn
+loguru
+numpy
+scipy
+python-multipart
+mutagen
+# 讯飞API SDK Start
+cffi
+gevent
+greenlet
+pycparser
+six
+# 讯飞API SDK End
+sentence_transformers
+pydantic_settings
+transformers
+openai
+volcengine-python-sdk
+netifaces
+python-multipart
+tiktoken
+websockets
+websocket-client
