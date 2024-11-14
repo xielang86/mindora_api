@@ -24,6 +24,6 @@ class TTSManager:
     }
 
     @staticmethod
-    def create_tts(tts_type: TTSType = TTSType.XUNFEI) -> BaseTTS:
+    def create_tts(tts_type: TTSType = TTSType.XUNFEI, trace_sn: str = None) -> BaseTTS:
         tts_class = TTSManager.TTS_CLASSES[tts_type]
-        return tts_class()
+        return tts_class(trace_sn=trace_sn)

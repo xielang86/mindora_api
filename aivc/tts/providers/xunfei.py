@@ -12,11 +12,10 @@ from time import mktime
 from concurrent.futures import ThreadPoolExecutor
 import asyncio
 import os
-import uuid
 from functools import partial
 from aivc.config.config import L,settings
 from aivc.tts.common import TTSRsp, XunFeiVoice
-
+from aivc.utils.id import short_uuid
 
 class XunFeiTTS:
     PROVIDER = "xunfei"
@@ -29,7 +28,8 @@ class XunFeiTTS:
     STATUS_CONTINUE_FRAME = 1    # 中间帧标识
     STATUS_LAST_FRAME = 2         # 最后一帧的标识
 
-    def __init__(self):
+    def __init__(self, trace_sn: str = None):
+        self.trace_sn = trace_sn
         self.APPID = self.get_app_id()
         self.APIKey = self.get_api_key()
         self.APISecret = self.get_api_secret()
@@ -169,17 +169,16 @@ class XunFeiTTS:
         self.executor.submit(run)
 
     def get_filename(self):
-        """
-        生成唯一的文件名
-        """
-        timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
-        unique_id = uuid.uuid4()
-        return f"{timestamp}_{unique_id}.pcm"
+        ts = datetime.now().strftime('%Y%m%d%H%M%S')
+        unique_id = short_uuid()
+        filename = f"{ts}-{unique_id}.pcm"
+        if self.trace_sn:
+            prefix = self.trace_sn
+            ts = datetime.now().strftime('%H%M%S')
+            filename = f"{prefix}-{ts}-{unique_id}.pcm"
+        return filename
 
     async def tts(self, text: str) -> TTSRsp:
-        """
-        异步启动WebSocket连接并执行TTS
-        """
         start_time = time.perf_counter()
         url = self.create_url()
 

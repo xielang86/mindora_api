@@ -29,3 +29,4 @@ pgvector
 psycopg
 psycopg2
 psycopg2-binary
+zhipuai
