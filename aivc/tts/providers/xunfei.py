@@ -15,9 +15,11 @@ import os
 from functools import partial
 from aivc.config.config import L,settings
 from aivc.tts.common import TTSRsp, XunFeiVoice
-from aivc.utils.id import short_uuid
+from aivc.tts.base import BaseTTS
+from aivc.utils.id import get_filename
 
-class XunFeiTTS:
+
+class XunFeiTTS(BaseTTS):
     PROVIDER = "xunfei"
 
     APP_ID_ENV_KEY = "XUNFEI_APP_ID"
@@ -116,10 +118,6 @@ class XunFeiTTS:
             audio = data.get("audio", "")
             status = data.get("status", -1)
 
-            # rsp_message = message.get("message", "")
-            # ced = data.get("ced", "")
-            # L.debug(f"讯飞语音合成on_message code:{code} rsp_message:{rsp_message} sid:{sid} status:{status} ced:{ced}")
-
             if code != 0:
                 err_msg = message.get("message", "Unknown error")
                 L.error(f"sid:{sid} 调用出错: {err_msg} 错误码:{code}")
@@ -168,16 +166,6 @@ class XunFeiTTS:
 
         self.executor.submit(run)
 
-    def get_filename(self):
-        ts = datetime.now().strftime('%Y%m%d%H%M%S')
-        unique_id = short_uuid()
-        filename = f"{ts}-{unique_id}.pcm"
-        if self.trace_sn:
-            prefix = self.trace_sn
-            ts = datetime.now().strftime('%H%M%S')
-            filename = f"{prefix}-{ts}-{unique_id}.pcm"
-        return filename
-
     async def tts(self, text: str) -> TTSRsp:
         start_time = time.perf_counter()
         url = self.create_url()
@@ -213,7 +201,7 @@ class XunFeiTTS:
                 cost=int((time.perf_counter() - start_time) * 1000)
             )
 
-        output_path = os.path.join(settings.OUTPUT_ROOT_PATH, self.get_filename())
+        output_path = os.path.join(settings.OUTPUT_ROOT_PATH, get_filename(trace_sn=self.trace_sn))
 
         # 将接收到的音频数据写入文件
         try:

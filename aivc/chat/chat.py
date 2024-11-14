@@ -128,21 +128,21 @@ class Chat():
         L.debug(f"chat_stream start! trace_sn:{trace_tree.root.message_id} messages:{json.dumps(messages, indent=2, ensure_ascii=False)} prompt_tokens_local:{prompt_tokens_local}")
 
         i = 0
-        rsp_text = ""
+        answer = ""
         completion_tokens_local = 0
 
         try:
             async for chunk_message in self.llm.async_req_stream(messages=messages):
                 duration =  int((time.perf_counter() - start_time) * 1000)
                 if chunk_message and isinstance(chunk_message, str):
-                    rsp_text += chunk_message
+                    answer += chunk_message
                 if i == 0:    
                     L.debug(f"chat_stream first rsp trace_sn:{trace_tree.root.message_id} cost:{duration}")
                 i += 1
 
-                if not chunk_message:
-                    L.debug(f"chat_stream done trace_sn:{trace_tree.root.message_id} chunk_message:{chunk_message} cost:{duration}")
-                    completion_tokens_local = LLMManager.get_token_length(llm_type=self.llm_type, text=rsp_text)
+                if chunk_message is None:   
+                    L.debug(f"chat_stream done trace_sn:{trace_tree.root.message_id} chunk_message:{chunk_message} answer:{answer} cost:{duration}")
+                    completion_tokens_local = LLMManager.get_token_length(llm_type=self.llm_type, text=answer)
                     trace_tree.llm.model = model_name
                     trace_tree.llm.req_tokens = prompt_tokens_local
                     trace_tree.llm.resp_tokens = completion_tokens_local
@@ -150,7 +150,8 @@ class Chat():
                     trace_tree.llm.price = self.llm.get_price(
                         input_tokens=prompt_tokens_local, 
                         output_tokens=completion_tokens_local)
-
+                    trace_tree.llm.answer = answer
+                    
                 yield chunk_message
         except Exception as e:
             # 查找状态码
@@ -169,7 +170,7 @@ class Chat():
                 L.error(f"chat_stream error trace_sn:{trace_tree.root.message_id} error:{e} stack_trace:{traceback.format_exc()}")
                 yield settings.QA_NO_RESULT_RSP
         
-        L.debug(f"chat_stream done trace_sn:{trace_tree.root.message_id} prompt_tokens_local:{prompt_tokens_local} completion_tokens_local:{completion_tokens_local} cost:{round(time.time() - start_time, 3)}")
+        L.debug(f"chat_stream done trace_sn:{trace_tree.root.message_id} prompt_tokens_local:{prompt_tokens_local} completion_tokens_local:{completion_tokens_local} answer:{answer} cost:{round(time.time() - start_time, 3)}")
         yield None
 
     async def chat_stream_image(self,
@@ -240,7 +241,7 @@ class Chat():
         self,
         question: str,
         trace_tree: TraceTree = TraceTree(),
-        min_sentence_length: int = 10,
+        min_sentence_length: int = 20,
         file_path: str = "",
         req: Req[VCReqData] = None) -> AsyncGenerator[str, None]:
         """
@@ -264,7 +265,6 @@ class Chat():
             req=req):
             if chunk is None:
                 L.debug(f"chat_stream_by_sentence done trace_sn:{trace_tree.root.message_id} trunk:{chunk}")
-                yield None
                 break
             if chunk:
                 buffer += str(chunk)
@@ -316,14 +316,11 @@ class Chat():
                     else:
                         accumulated_sentence = remaining_sentence
 
-        # 如果有累积的句子，检查其长度并决定是否输出
+        # 如果有累积的句子，输出
         if accumulated_sentence:
-            if len(accumulated_sentence) >= min_sentence_length or first_sentence:
-                yield accumulated_sentence
-            else:
-                # 根据需求，决定是否仍然输出长度不足的句子
-                # 这里选择输出，即使长度不足
-                yield accumulated_sentence
+            yield accumulated_sentence
+        # 结束
+        yield None
 
     async def chat(self,
                 question: str,
@@ -341,7 +338,6 @@ class Chat():
             self.llm = LLMManager.create_llm(self.llm_type, model_name, self.timeout)
             L.debug(f"chat select_model_by_length trace_sn:{trace_tree.root.message_id} messages len:{len(messages)} req_tokens_length:{req_tokens_length} change model:{self.model_name}->{model_name}")
         L.debug(f"chat start! trace_sn:{trace_tree.root.message_id} messages len:{len(messages)} req_tokens_length:{req_tokens_length}")
-        trace_tree.gen_answer.model = model_name
         
         L.debug(f"chat start! trace_sn:{trace_tree.root.message_id} messages len:{len(messages)} req_tokens_length:{req_tokens_length}")
         rsp = await self.llm.async_req(messages=messages)

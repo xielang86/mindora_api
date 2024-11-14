@@ -358,7 +358,7 @@ async def voice_chat(
     trace_sn = trace_sn or get_id()
     content = await file.read()
     try:
-        file_path = await save_audio_file(content, trace_sn)
+        file_path = await save_upload_file(content, trace_sn)
         await validate_audio_file_size(file_path)
     except Exception as e:
         L.error(f"voice_chat HTTPException trace_sn:{trace_sn} error:{e} stack:{traceback.format_exc()}")
