@@ -13,6 +13,7 @@ from aivc.chat.llm.providers.doubao import DouBaoLLM
 from aivc.chat.llm.providers.siliconflow import SiliconFlowLLM
 from aivc.chat.llm.providers.step import StepLLM
 from aivc.chat.llm.providers.baichuan import BaiChuanLLM
+from aivc.chat.llm.providers.google import GoogleLLM
 from pydantic import BaseModel, field_validator
 from transformers import AutoTokenizer
 import tiktoken
@@ -29,6 +30,7 @@ class LLMType(Enum):
     SILICON = SiliconFlowLLM.PROVIDER
     STEP = StepLLM.PROVIDER
     BAICHUAN = BaiChuanLLM.PROVIDER
+    GOOGLE = GoogleLLM.PROVIDER
     
     @classmethod
     def from_str(cls, value: str) -> 'LLMType':
@@ -66,7 +68,8 @@ class LLMManager:
         LLMType.DOUBAO: DouBaoLLM,
         LLMType.SILICON: SiliconFlowLLM,
         LLMType.STEP: StepLLM,
-        LLMType.BAICHUAN: BaiChuanLLM
+        LLMType.BAICHUAN: BaiChuanLLM,
+        LLMType.GOOGLE: GoogleLLM
     }
 
     @staticmethod

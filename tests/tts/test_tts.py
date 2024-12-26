@@ -19,4 +19,6 @@ async def test_tts(tts_type: TTSType = TTSType.DOUBAO, compression_rate:int = 1)
 
 if __name__ == "__main__":
     compression_rate = 10
-    asyncio.run(test_tts(compression_rate=compression_rate))
+    asyncio.run(test_tts(
+        tts_type=TTSType.ELEVENLABS,
+        compression_rate=compression_rate))

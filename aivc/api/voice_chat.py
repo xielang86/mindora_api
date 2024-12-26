@@ -13,7 +13,7 @@ from aivc.tts.common import TTSRsp
 from aivc.utils.audio import calculate_pcm_duration
 import asyncio
 import traceback
-from aivc.common.chat import Req, VCReqData, Resp, VCRespData, ContentType, HandlerResult
+from aivc.common.chat import Req, VCReqData, Resp, VCRespData, ContentType, HandlerResult, ConverMsg
 import base64
 import time
 from aivc.common.route import Route
@@ -32,6 +32,7 @@ from sqlmodel import Session
 from aivc.chat.prompt_selector import PromptTemplate
 from aivc.utils.weather import WeatherService
 from datetime import datetime
+from aivc.chat.message_manager import MessageManager
 
 
 router = APIRouter()
@@ -45,6 +46,7 @@ async def process_voice_conversation(
     req: Req[VCReqData] = None):
 
     try:
+        chat_instance = Chat(content_type=req.data.content_type)
         result = None
         if req.data.content_type == ContentType.IMAGE.value:
             result = await image_handler(
@@ -53,7 +55,8 @@ async def process_voice_conversation(
                 audio_queue=audio_queue,
                 cancellation_event=cancellation_event,
                 trace_tree=trace_tree,
-                req=req)
+                req=req,
+                chat_instance=chat_instance)
         
         if req.data.content_type in [ContentType.AUDIO.value, ContentType.TEXT.value]:
             result = await audio_handler(
@@ -62,7 +65,8 @@ async def process_voice_conversation(
                 audio_queue=audio_queue,
                 cancellation_event=cancellation_event,
                 trace_tree=trace_tree,
-                req=req)
+                req=req,
+                chat_instance=chat_instance)
             
         # 保存对话
         L.debug(f"voice_chat result:{result} trace_sn:{trace_sn}")
@@ -118,7 +122,8 @@ async def image_handler(
     audio_queue: asyncio.Queue,
     cancellation_event: asyncio.Event,
     trace_tree:TraceTree = TraceTree(),
-    req: Req[VCReqData] = None) -> HandlerResult:
+    req: Req[VCReqData] = None,
+    chat_instance:Chat = None) -> HandlerResult:
     # 图像识别
     question = PromptTemplate.VISIO_PROMPT
 
@@ -142,7 +147,8 @@ async def image_handler(
                 cancellation_event=cancellation_event,
                 trace_tree=trace_tree,
                 req=req,
-                file_path=file_path)
+                file_path=file_path,
+                chat_instance=chat_instance)
     return HandlerResult(
             question=question, 
             answer=answer, 
@@ -154,7 +160,8 @@ async def audio_handler(
     audio_queue: asyncio.Queue,
     cancellation_event: asyncio.Event,
     trace_tree:TraceTree = TraceTree(),
-    req: Req[VCReqData] = None) -> HandlerResult:
+    req: Req[VCReqData] = None,
+    chat_instance:Chat = None) -> HandlerResult:
 
     req_text = ""
     if req.data.content_type == ContentType.TEXT.value:
@@ -198,14 +205,30 @@ async def audio_handler(
         await audio_queue_put(audio_queue,rsp,trace_tree)
         return
 
+    # 更新进MessageManager
+    ts = datetime.now().isoformat()
+    client_addr = ""
+    if trace_tree and trace_tree.root and trace_tree.root.client_addr:
+        client_addr = trace_tree.root.client_addr
+    await MessageManager().insert_message(conversation_id = req.conversation_id,
+                                    message = ConverMsg(
+                                        method = req.method,
+                                        conversation_id = req.conversation_id,
+                                        conversation_id_ts = ts,
+                                        message_id = req.message_id,
+                                        message_id_ts = ts,
+                                        client_addr = client_addr
+                                    ))
+
     # 问题预处理
     router_start_time = time.perf_counter()
     route = Route(
         query_analyzer=QueryAnalyzer(
             question=req_text
-        )
+        )    
     )
-    await Router(route=route).router()
+    await Router(route=route,
+                chat_instance=chat_instance).router()
     L.debug(f"voice_chat route trace_sn:{trace_sn} question:{req_text} kb_result:{route.kb_result} cost:{int((time.perf_counter() - router_start_time) * 1000)}ms")
     if route and route.kb_result:
         trace_tree.qpp.question_category = route.kb_result.category_name
@@ -248,28 +271,27 @@ async def audio_handler(
             # 发送结束标记
             await audio_queue_put(audio_queue,TTSRsp(stream_seq=-1),trace_tree)
         elif route.kb_result.category_name == QuestionType.TAKE_PHOTO.value:
-            # 拍照, 不发音频
+            # 拍照
             sound_info = ActionSound().get_sound_info(
                 action=QuestionType.TAKE_PHOTO.value,
                 format=req.data.tts_audio_format)
             answer = sound_info.text
-            # L.debug(f"voice_chat sound trace_sn:{trace_sn} sound_info:{sound_info.selected_sound_file}")
-            # with open(sound_info.selected_sound_file, 'rb') as audio_file:
-            #     audio_data =  audio_file.read()
-            rsp = TTSRsp(
-                action=QuestionType.TAKE_PHOTO.value,
-                text=sound_info.text,
-                # audio_path=sound_info.selected_sound_file,
-                audio_path = None,
-                output_length=0,
-                audio_data= None,
-                audio_format= None,
-                # sample_format="S16LE",
-                # bitrate=256000,
-                # channels=1,
-                # sample_rate=16000,
-                stream_seq=1)
-            await audio_queue_put(audio_queue,rsp,trace_tree)
+            L.debug(f"voice_chat sound trace_sn:{trace_sn} sound_info:{sound_info.selected_sound_file}")
+            with open(sound_info.selected_sound_file, 'rb') as audio_file:
+                audio_data =  audio_file.read()
+                rsp = TTSRsp(
+                    action=QuestionType.TAKE_PHOTO.value,
+                    text=sound_info.text,
+                    audio_path=sound_info.selected_sound_file,
+                    output_length=len(audio_data),
+                    audio_data=audio_data,
+                    audio_format=req.data.tts_audio_format,
+                    sample_format="S16LE",
+                    bitrate=256000,
+                    channels=1,
+                    sample_rate=16000,
+                    stream_seq=1)
+                await audio_queue_put(audio_queue,rsp,trace_tree)
             # 发送结束标记
             await audio_queue_put(audio_queue,TTSRsp(stream_seq=-1),trace_tree)
         elif route.kb_result.category_name == QuestionType.WEATHER.value:
@@ -301,7 +323,8 @@ async def audio_handler(
                 cancellation_event=cancellation_event,
                 trace_tree=trace_tree,
                 req=req,
-                route=route)
+                route=route,
+                chat_instance=chat_instance)
         else:
             # 知识库回答
             answer = route.kb_result.answer
@@ -341,7 +364,8 @@ async def audio_handler(
             cancellation_event=cancellation_event,
             trace_tree=trace_tree,
             req=req,
-            route=route)
+            route=route,
+            chat_instance=chat_instance)
     return HandlerResult(
             question=question, 
             answer=answer, 
@@ -355,9 +379,9 @@ async def llm_and_tts(
     trace_tree:TraceTree = TraceTree(),
     req: Req[VCReqData] = None,
     file_path: str = None,
-    route:Route = None) -> str:
+    route:Route = None,
+    chat_instance:Chat = None) -> str:
     answer = ""
-    chat_instance = Chat(content_type=req.data.content_type)
     llm_start_time = time.perf_counter()
     llm_index = 0
     async for llm_rsp_trunk in chat_instance.chat_stream_by_sentence(
@@ -369,6 +393,16 @@ async def llm_and_tts(
         if llm_index == 0:
             trace_tree.llm.first_cost = int((time.perf_counter() - llm_start_time) * 1000)
         
+        # 是否是最新的请求
+        is_latest, latest_id = await MessageManager().is_latest_message(req.conversation_id, req.message_id)
+        if not is_latest:
+            L.debug(f"MessageManager llm_and_tts drop message conversation_id: {req.conversation_id} message_id: {req.message_id}, latest_id: {latest_id}")
+            rsp = TTSRsp(
+            stream_seq=-1)
+            await audio_queue_put(audio_queue,rsp,trace_tree) 
+            break
+
+
         # 流结束
         if llm_rsp_trunk is None:
             L.debug(f"chat_stream_by_sentence done trace_sn:{trace_sn} llm_index:{llm_index} llm_rsp_trunk:{llm_rsp_trunk}")
@@ -406,11 +440,7 @@ async def llm_and_tts(
             
         if tts_rsp.code != 0:
             L.error(f"tts error trace_sn:{trace_sn} code:{tts_rsp.code} message:{tts_rsp.message} audio_data len:{len(tts_rsp.audio_data)}")
-            rsp = TTSRsp(
-                code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                message=tts_rsp.message)
-            await audio_queue_put(audio_queue,rsp,trace_tree)
-            return   
+            continue
         
         # 等待队列有空位，再放入音频数据
         await audio_queue_put(audio_queue,tts_rsp,trace_tree)
@@ -471,11 +501,9 @@ async def voice_chat_ws(req: Req[VCReqData], trace_tree:TraceTree = None) -> Asy
                         message=tts_rsp.message)
                     yield resp
                     break
-                
-                audio_data_base64 = None
-                if tts_rsp.audio_data:
-                    audio_data_base64 = base64.b64encode(tts_rsp.audio_data).decode("utf-8")
-                    L.debug(f"send_audio_generator conversation_id:{req.conversation_id} message_id:{req.message_id} audio_data_base64 len:{len(audio_data_base64)} tts_rsp:{tts_rsp}")
+
+                audio_data_base64 = base64.b64encode(tts_rsp.audio_data).decode("utf-8")
+                L.debug(f"send_audio_generator conversation_id:{req.conversation_id} message_id:{req.message_id} audio_data_base64 len:{len(audio_data_base64)} tts_rsp:{tts_rsp}")
 
                 resp_data = VCRespData(
                         action=tts_rsp.action,

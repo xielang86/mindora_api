@@ -38,6 +38,7 @@ class WeatherService:
         
         async with aiohttp.ClientSession() as session:
             async with session.get(self.BASE_URL, params=params) as response:
+                L.info(f"get_weather response: {response}")
                 result = await response.json()
                 weather_data = result.get('daily', [])
                 if response.status == 200:

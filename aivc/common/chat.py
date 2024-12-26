@@ -19,6 +19,14 @@ class ContentType(str, Enum):
     IMAGE = "image"
     TEXT = "text"
 
+class ConverMsg(BaseModel):
+    method: str 
+    conversation_id: str
+    conversation_id_ts: str
+    message_id: str
+    message_id_ts: str 
+    client_addr: str
+
 class VCReqData(BaseModel):
     content_type: Optional[str] = ContentType.AUDIO.value  # audio or image
     content: Optional[str] = "" # base64 encoded data
@@ -72,9 +80,6 @@ class Prompt(BaseModel):
     system: Optional[str] = ""
     user: Optional[str] = ""
 
-# Define the Chat
-class Chat(BaseModel):
-    id: str
 
 # Define the Model
 class Model(BaseModel):
@@ -127,3 +132,5 @@ class HandlerResult:
         self.question = question
         self.answer = answer
         self.question_type = question_type
+
+

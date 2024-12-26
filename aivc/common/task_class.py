@@ -2,13 +2,35 @@ from typing import List
 from enum import Enum
 
 class QuestionType(Enum):
-    DEFAULT = 'default'
-    ABOUT = 'about'
-    SUPPORT = 'support'
-    SONG = 'song'
-    TAKE_PHOTO = 'take_photo'
-    PHOTO_RECOGNITION = 'photo_recognition'
-    WEATHER = 'weather'
+    DEFAULT = ('default', -0.83)
+    ABOUT = ('about', -0.9)
+    SUPPORT = ('support', -0.85)
+    SONG = ('song', -0.83)
+    TAKE_PHOTO = ('take_photo', -0.83)
+    PHOTO_RECOGNITION = ('photo_recognition', -0.83)
+    WEATHER = ('weather', -0.76)
+
+    def __init__(self, value: str, threshold: float):
+        self._value_ = value
+        self.threshold = threshold
+
+    @property
+    def value(self) -> str:
+        return self._value_
+
+    def get_threshold(self) -> float:
+        return self.threshold
+
+    @classmethod
+    def get_threshold_by_category_name(cls, category_name: str) -> float:
+        for question_type in cls:
+            if question_type.value == category_name:
+                return question_type.get_threshold()
+        return cls.DEFAULT.get_threshold()
+
+    @classmethod
+    def get_min_threshold(cls) -> float:
+        return min((type.threshold for type in cls), key=lambda x: abs(x))
 
 QuestionWithAnswer = [QuestionType.ABOUT.value, QuestionType.SUPPORT.value]
 

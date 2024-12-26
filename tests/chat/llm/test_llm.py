@@ -1,4 +1,4 @@
-from aivc.chat.llm.manager import LLMType, OpenAILLM, WenxinLLM, QWenLLM, ZhiPuLLM, MoonShotLLM, DeepSeekLLM, OllamaLLM, DouBaoLLM, StepLLM, BaiChuanLLM
+from aivc.chat.llm.manager import LLMType, OpenAILLM, WenxinLLM, QWenLLM, ZhiPuLLM, MoonShotLLM, DeepSeekLLM, OllamaLLM, DouBaoLLM, StepLLM, BaiChuanLLM, GoogleLLM
 from aivc.chat.chat import Chat
 from aivc.chat.llm.manager import LLMManager
 import time
@@ -100,6 +100,9 @@ def test_llm_step(question: str=""):
 def test_llm_bai_chuan(question: str=""):
     test_llm(llm_type=LLMType.BAICHUAN, name=BaiChuanLLM.BAICHUAN4_AIR, question=question)
 
+def test_llm_google(question: str=""):
+    test_llm(llm_type=LLMType.GOOGLE, name=GoogleLLM.GEMINI_2_FLASH, question=question)   
+
 if __name__ == "__main__":
-    question = "讲个故事"
-    test_llm_bai_chuan(question=question)
+    question = "用中文讲个故事"
+    test_llm_google(question=question)

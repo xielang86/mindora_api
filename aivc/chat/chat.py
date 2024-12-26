@@ -259,7 +259,7 @@ class Chat():
         self,
         question: str,
         trace_tree: TraceTree = TraceTree(),
-        min_sentence_length: int = 10,
+        min_sentence_length: int = 15,
         file_path: str = "",
         req: Req[VCReqData] = None,
         route: Route = None

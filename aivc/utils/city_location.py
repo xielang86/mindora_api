@@ -22,11 +22,11 @@ async def get_city(text: str) -> str:
             if clean_city in text:
                 return city_name
                 
-        return ""
+        return ip.DEFAULT_SHANGHAI_LOCATION.city
         
     except Exception as e:
         L.error(f"Failed to extract city name from text: {str(e)}")
-        return ""
+        return ip.DEFAULT_SHANGHAI_LOCATION.city
   
 
 async def zh_location_to_en(zh_text: str) -> str:
@@ -43,6 +43,12 @@ async def zh_location_to_en(zh_text: str) -> str:
         return zh_text
 
 async def get_city_location(city_name: str) -> ip.IPLocation | None:
+    default_location = ip.IPLocation(
+        city=ip.DEFAULT_SHANGHAI_LOCATION.city,
+        lon=ip.DEFAULT_SHANGHAI_LOCATION.lon,
+        lat=ip.DEFAULT_SHANGHAI_LOCATION.lat
+    )
+
     city_name_en = await zh_location_to_en(city_name)
     L.debug(f"get_city_location city_name:{city_name} city_name_en: {city_name_en}")
     file = "aivc/data/World_Cities_Location.csv"
@@ -61,9 +67,9 @@ async def get_city_location(city_name: str) -> ip.IPLocation | None:
                     )
     except Exception as e:
         print(f"Error reading city location: {e}")
-        return None
+        return default_location
     
-    return None
+    return default_location
 
 if __name__ == "__main__":
     import asyncio

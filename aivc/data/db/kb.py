@@ -2,6 +2,7 @@ from typing import List
 from sqlmodel import Session, select
 from sqlalchemy import text
 from aivc.common.kb import QuestionCategory, Question, KBSearchResult
+from aivc.common.task_class import QuestionType
 
 def create_category(
     *,
@@ -58,7 +59,7 @@ def search_similar_questions(
     session: Session,
     vector: List[float], 
     top_k: int = 5,
-    threshold: float = -0.83
+    threshold: float = QuestionType.get_min_threshold()
 ) -> List[KBSearchResult]:
     session.exec(text("SET LOCAL enable_seqscan = OFF"))
     session.exec(text("SET LOCAL hnsw.ef_search = 20")) 

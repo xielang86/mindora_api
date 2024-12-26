@@ -9,6 +9,7 @@ from datetime import datetime
 import asyncio
 from collections import defaultdict
 import enum
+from aivc.chat.message_manager import MessageManager
 
 router = APIRouter()
 
@@ -86,14 +87,24 @@ async def process_request(
             )
             
             async for resp in voice_chat_ws(req=req, trace_tree=trace_tree):
+                # 是否是最新的请求
+                is_latest, latest_id = await MessageManager().is_latest_message(resp.conversation_id, resp.message_id)
+                if not is_latest:
+                    L.debug(f"MessageManager drop websocket message conversation_id: {resp.conversation_id} message_id: {resp.message_id} latest_id:{latest_id} client: {websocket.client.host}:{websocket.client.port}")
+                    continue
+            
+                # 检查WebSocket连接状态
                 if websocket.client_state.name == WebSocketState.CONNECTED.name:
-                    await websocket.send_json(resp.model_dump())
-                    L.debug(f"--*--ws message resp--*-- rmt: {websocket.client.host}:{websocket.client.port} message_id: {message_id} conversation_id: {conversation_id} resp: {resp}")
+                    try:
+                        send_result = await websocket.send_json(resp.model_dump())
+                        L.debug(f"--*--ws message resp--*-- rmt: {websocket.client.host}:{websocket.client.port} message_id: {message_id} conversation_id: {conversation_id} resp: {resp} send_result: {send_result}")
 
-                    # 更新TTS响应的发送时间
-                    for trace_tts_resp in trace_tree.tts.resp_list:
-                        if resp and resp.data and isinstance(resp.data, VCRespData) and trace_tts_resp.stream_seq == resp.data.stream_seq:
-                            trace_tts_resp.send_timestamp = datetime.now().strftime("%H:%M:%S.%f")[:-3]
+                        # 更新TTS响应的发送时间
+                        for trace_tts_resp in trace_tree.tts.resp_list:
+                            if resp and resp.data and isinstance(resp.data, VCRespData) and trace_tts_resp.stream_seq == resp.data.stream_seq:
+                                trace_tts_resp.send_timestamp = datetime.now().strftime("%H:%M:%S.%f")[:-3]
+                    except Exception as err:
+                        L.error(f"Error sending message: {str(err)} stack: {traceback.format_exc()} message_id: {message_id}")
         else:
             resp = await handle_text_request(req_data)
             if websocket.client_state.name == WebSocketState.CONNECTED.name:

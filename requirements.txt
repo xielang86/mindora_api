@@ -33,3 +33,7 @@ zhipuai
 aiohttp
 aiofiles
 xdbSearcher
+jieba   
+
+google-generativeai
+elevenlabs
