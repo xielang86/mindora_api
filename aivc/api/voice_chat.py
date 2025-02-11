@@ -33,6 +33,7 @@ from aivc.chat.prompt_selector import PromptTemplate
 from aivc.utils.weather import WeatherService
 from datetime import datetime
 from aivc.chat.message_manager import MessageManager
+from aivc.common.file import save_upload_file,validate_audio_file_size
 
 
 router = APIRouter()
@@ -248,9 +249,7 @@ async def audio_handler(
             # 前导音频
             start_time = time.perf_counter()
             tts = TTSManager.create_tts(trace_sn=trace_sn)
-            tts_audio_format = AudioFormat.PCM.value
-            if req and req.data:
-                tts_audio_format = req.data.tts_audio_format
+            tts_audio_format = AudioFormat.MP3.value
             tts_rsp: TTSRsp = await tts.tts(text=answer,
                                             audio_format=tts_audio_format)
             L.debug(f"tts done trace_sn:{trace_sn} tts cost:{int((time.perf_counter() - start_time) * 1000)}ms tts_rsp.code:{tts_rsp.code}")
@@ -271,27 +270,40 @@ async def audio_handler(
             # 发送结束标记
             await audio_queue_put(audio_queue,TTSRsp(stream_seq=-1),trace_tree)
         elif route.kb_result.category_name == QuestionType.TAKE_PHOTO.value:
-            # 拍照
+            # 拍照, 不发音频
             sound_info = ActionSound().get_sound_info(
                 action=QuestionType.TAKE_PHOTO.value,
                 format=req.data.tts_audio_format)
             answer = sound_info.text
-            L.debug(f"voice_chat sound trace_sn:{trace_sn} sound_info:{sound_info.selected_sound_file}")
-            with open(sound_info.selected_sound_file, 'rb') as audio_file:
-                audio_data =  audio_file.read()
-                rsp = TTSRsp(
-                    action=QuestionType.TAKE_PHOTO.value,
-                    text=sound_info.text,
-                    audio_path=sound_info.selected_sound_file,
-                    output_length=len(audio_data),
-                    audio_data=audio_data,
-                    audio_format=req.data.tts_audio_format,
-                    sample_format="S16LE",
-                    bitrate=256000,
-                    channels=1,
-                    sample_rate=16000,
-                    stream_seq=1)
-                await audio_queue_put(audio_queue,rsp,trace_tree)
+            # L.debug(f"voice_chat sound trace_sn:{trace_sn} sound_info:{sound_info.selected_sound_file}")
+            # with open(sound_info.selected_sound_file, 'rb') as audio_file:
+            #     audio_data =  audio_file.read()
+            rsp = TTSRsp(
+                action=QuestionType.TAKE_PHOTO.value,
+                text=sound_info.text,
+                # audio_path=sound_info.selected_sound_file,
+                audio_path = None,
+                output_length=0,
+                audio_data= None,
+                audio_format= None,
+                # sample_format="S16LE",
+                # bitrate=256000,
+                # channels=1,
+                # sample_rate=16000,
+                stream_seq=1)
+            await audio_queue_put(audio_queue,rsp,trace_tree)
+            # 发送结束标记
+            await audio_queue_put(audio_queue,TTSRsp(stream_seq=-1),trace_tree)
+        elif route.kb_result.category_name == QuestionType.SLEEP_ASSISTANT.value:
+            rsp = TTSRsp(
+                action=QuestionType.SLEEP_ASSISTANT.value,
+                text="",
+                audio_path = None,
+                output_length=0,
+                audio_data= None,
+                audio_format= None,
+                stream_seq=1)
+            await audio_queue_put(audio_queue,rsp,trace_tree)
             # 发送结束标记
             await audio_queue_put(audio_queue,TTSRsp(stream_seq=-1),trace_tree)
         elif route.kb_result.category_name == QuestionType.WEATHER.value:
@@ -333,9 +345,7 @@ async def audio_handler(
             # 处理 TTS
             start_time = time.perf_counter()
             tts = TTSManager.create_tts(trace_sn=trace_sn)
-            tts_audio_format = AudioFormat.PCM.value
-            if req and req.data:
-                tts_audio_format = req.data.tts_audio_format
+            tts_audio_format = AudioFormat.MP3.value
             tts_rsp: TTSRsp = await tts.tts(text=llm_rsp_trunk,
                                             audio_format=tts_audio_format)
             L.debug(f"tts done trace_sn:{trace_sn} tts cost:{int((time.perf_counter() - start_time) * 1000)}ms tts_rsp.code:{tts_rsp.code}")
@@ -426,9 +436,7 @@ async def llm_and_tts(
             break
         
         tts = TTSManager.create_tts(trace_sn=trace_sn)
-        tts_audio_format = AudioFormat.PCM.value
-        if req and req.data:
-            tts_audio_format = req.data.tts_audio_format
+        tts_audio_format = AudioFormat.MP3.value
         tts_rsp: TTSRsp = await tts.tts(text=llm_rsp_trunk_clean,
                                         audio_format=tts_audio_format)
         # 流状态
@@ -501,9 +509,11 @@ async def voice_chat_ws(req: Req[VCReqData], trace_tree:TraceTree = None) -> Asy
                         message=tts_rsp.message)
                     yield resp
                     break
-
-                audio_data_base64 = base64.b64encode(tts_rsp.audio_data).decode("utf-8")
-                L.debug(f"send_audio_generator conversation_id:{req.conversation_id} message_id:{req.message_id} audio_data_base64 len:{len(audio_data_base64)} tts_rsp:{tts_rsp}")
+                
+                audio_data_base64 = None
+                if tts_rsp.audio_data:
+                    audio_data_base64 = base64.b64encode(tts_rsp.audio_data).decode("utf-8")
+                    L.debug(f"send_audio_generator conversation_id:{req.conversation_id} message_id:{req.message_id} audio_data_base64 len:{len(audio_data_base64)} tts_rsp:{tts_rsp}")
 
                 resp_data = VCRespData(
                         action=tts_rsp.action,
@@ -622,32 +632,3 @@ async def cancel_voice_chat(trace_sn: str):
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"没有找到 trace_sn: {trace_sn} 对应的任务"
         )
-
-def get_filename(trace_sn: str) -> str:
-    return f"{trace_sn}"
-
-def get_file_extension(filename: str) -> str:
-    return filename.split(".")[-1].lower()
-
-async def validate_audio_file_size(filepath:str):
-    MAX_FILE_SIZE = 10 * 1024 * 1024  
-
-    L.debug(f"validate_audio_file_size filepath:{filepath}")
-    file_size = os.path.getsize(filepath)
-    if file_size > MAX_FILE_SIZE:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"文件大小超过限制: {MAX_FILE_SIZE / (1024 * 1024)} MB",
-        )
-
-    return file_size
-
-async def save_upload_file(
-    file_data: bytes, 
-    trace_sn: str) -> str:
-    os.makedirs(settings.UPLOAD_ROOT_PATH, exist_ok=True)
-    saved_filename = get_filename(trace_sn)
-    file_path = os.path.join(settings.UPLOAD_ROOT_PATH, saved_filename)
-    with open(file_path, "wb") as buffer:
-        buffer.write(file_data)
-    return file_path

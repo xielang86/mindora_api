@@ -7,6 +7,7 @@ class QuestionType(Enum):
     SUPPORT = ('support', -0.85)
     SONG = ('song', -0.83)
     TAKE_PHOTO = ('take_photo', -0.83)
+    SLEEP_ASSISTANT = ('sleep_assistant', -0.91)
     PHOTO_RECOGNITION = ('photo_recognition', -0.83)
     WEATHER = ('weather', -0.76)
 

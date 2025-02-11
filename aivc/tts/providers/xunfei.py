@@ -166,7 +166,7 @@ class XunFeiTTS(BaseTTS):
 
         self.executor.submit(run)
 
-    async def tts(self, text: str, audio_format: str="pcm", compression_rate:int=10) -> TTSRsp:
+    async def tts(self, text: str, audio_format: str="mp3", compression_rate:int=10, speed_ratio:float = 1.0) -> TTSRsp:
         start_time = time.perf_counter()
         url = self.create_url()
 

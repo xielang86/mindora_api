@@ -57,5 +57,4 @@ class Router:
         self.route.kb_result = kb_result
         L.debug(f"router question:{self.route.query_analyzer.question} kb_result:{kb_result} cost:{int((time.perf_counter() - start_time) * 1000)}ms")
         # 选择prompt
-        self.route.prompt = PromptSelector(kb_result=kb_result,
-                                        query_analyzer=self.route.query_analyzer).select()
+        self.route.prompt = PromptSelector(kb_result=kb_result).select()

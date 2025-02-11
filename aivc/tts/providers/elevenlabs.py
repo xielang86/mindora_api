@@ -46,7 +46,7 @@ class ElevenLabsTTS(BaseTTS):
             return "mp3_22050_32"
         return "pcm_16000"
 
-    async def tts(self, text: str, audio_format: str = "mp3", compression_rate: int = 10) -> TTSRsp:
+    async def tts(self, text: str, audio_format: str = "mp3", compression_rate: int = 10, speed_ratio:float = 1.0) -> TTSRsp:
         try:
             start_time = time.perf_counter()
             L.debug(f"elevenlabs tts req: text={text} trace_sn:{self.trace_sn}")

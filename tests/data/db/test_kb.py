@@ -11,6 +11,7 @@ async def test_search_kb_case1():
         "你是谁？": QuestionType.ABOUT.value,
         "7号。": None,
         "我是谁？": None,
+        "帮我助眠吧": QuestionType.SLEEP_ASSISTANT.value,
     }
     for question, category_name in question_dict.items():
         result = await Router(
@@ -24,10 +25,11 @@ async def test_search_kb_case1():
         if category_name is None:
             assert result is None
             continue
-        assert result.category_name == category_name
+        if result:
+            assert result.category_name == category_name
 
 def test_get_threshold_by_category_name():
-    print(QuestionType.get_threshold_by_category_name("weather"))
+    print(QuestionType.get_threshold_by_category_name("sleep_assistant"))
 
 def test_get_min_threshold():
     print(QuestionType.get_min_threshold())

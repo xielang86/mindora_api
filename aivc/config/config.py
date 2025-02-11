@@ -154,5 +154,7 @@ class Settings(BaseSettings):
     SONG_DIR: str = os.path.join(PATH, "assets/song")
     SOUND_DIR: str = os.path.join(PATH, "assets/sound")
 
+    AI_RPC_SERVER: str = "tcp://121.43.54.25:4242"
+
 
 settings = Settings() 

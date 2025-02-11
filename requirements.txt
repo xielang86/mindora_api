@@ -37,3 +37,6 @@ jieba
 
 google-generativeai
 elevenlabs
+
+zerorpc
+mediapipe

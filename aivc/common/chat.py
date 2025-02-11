@@ -6,13 +6,16 @@ from enum import Enum
 from sqlmodel import SQLModel, Field
 from sqlalchemy import Index
 from datetime import datetime
+import json
+from aivc.common.sleep_common import ReportReqData,ActionRespData
 
 class VCMethod(str, Enum):
     VOICE_CHAT = "voice-chat"
     TEXT_CHAT = "text-chat"
     PING = "ping"
     PONG = "pong"
-
+    REPORT_STATE = "report-state"
+    EXECUTE_COMMAND = "execute-command"
 
 class ContentType(str, Enum):
     AUDIO = "audio"
@@ -47,6 +50,10 @@ class Req(BaseModel, Generic[DataT]):
         data_str = ""
         if isinstance(self.data, VCReqData):
             data_str = f"content_type: {self.data.content_type} content len: {len(self.data.content)} tts_audio_format: {self.data.tts_audio_format}"
+        elif isinstance(self.data, ReportReqData):
+            image_data_len = len(self.data.images.data) if self.data and self.data.images and self.data.images.data else 0
+            audio_data_len = len(self.data.audio.data) if self.data and self.data.audio and self.data.audio.data else 0
+            data_str = f"images: {image_data_len} audio: {audio_data_len} scene_exec_status: {self.data.scene_exec_status}"
         return f"version: {self.version} method: {self.method} conversation_id: {self.conversation_id} message_id: {self.message_id} token: {self.token} timestamp: {self.timestamp} data: {data_str}"
 
 class VCRespData(BaseModel):
@@ -74,7 +81,46 @@ class Resp(BaseModel, Generic[DataT]):
         if isinstance(self.data, VCRespData):
             audio_data_len = len(self.data.audio_data) if self.data.audio_data else 0
             data_str = f"action:{self.data.action} audio_format:{self.data.audio_format} audio_data len: {audio_data_len} text: {self.data.text} stream_seq: {self.data.stream_seq}"
-        return f"version: {self.version} method: {self.method} conversation_id: {self.conversation_id} message_id: {self.message_id} code: {self.code} message: {self.message} data:: {data_str}"
+        elif isinstance(self.data, ActionRespData):
+            data_str = json.dumps(self.data, default=lambda o: o.__dict__, ensure_ascii=False, indent=2)  
+            data_str = self.modify_audio_data_in_json(data_str)                            
+        return f"version: {self.version} method: {self.method} conversation_id: {self.conversation_id} message_id: {self.message_id} code: {self.code} message: {self.message} data: {data_str}"
+    
+    def modify_audio_data_in_json(self, data_str):
+        """
+        修改 JSON 字符串中所有 'audio_data' key 的 value。
+
+        Args:
+            data_str: JSON 格式的字符串。
+
+        Returns:
+            修改后的 JSON 字符串。
+        """
+        try:
+            data_dict = json.loads(data_str)
+        except json.JSONDecodeError as e:
+            print(f"JSON 解析错误: {e}")
+            return data_str
+
+        def _modify_value(obj):
+            if isinstance(obj, dict):
+                for key, value in obj.items():
+                    if key == 'audio_data':
+                        if isinstance(value, list) or isinstance(value, str) or isinstance(value, tuple):
+                            obj[key] = f'<audio_data length: {len(value)}>'
+                        else:
+                            obj[key] = '<audio_data length: unknown>'
+                    else:
+                        obj[key] = _modify_value(value)
+                return obj
+            elif isinstance(obj, list):
+                return [_modify_value(item) for item in obj]
+            else:
+                return obj
+
+        modified_data_dict = _modify_value(data_dict)
+        modified_data_str = json.dumps(modified_data_dict, ensure_ascii=False, indent=2)
+        return modified_data_str
 
 class Prompt(BaseModel):
     system: Optional[str] = ""
@@ -132,5 +178,3 @@ class HandlerResult:
         self.question = question
         self.answer = answer
         self.question_type = question_type
-
-

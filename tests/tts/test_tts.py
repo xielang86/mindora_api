@@ -1,12 +1,13 @@
 from aivc.tts.manager import TTSManager, TTSType
 import asyncio
 
-async def test_tts(tts_type: TTSType = TTSType.DOUBAO, compression_rate:int = 1):
+async def test_tts(tts_type: TTSType = TTSType.DoubaoLM, compression_rate:int = 1, speed_ratio:float = 0.8):
     tts = TTSManager.create_tts(tts_type=tts_type)
     response = await tts.tts(
-        text = "好的，我看一下",
+        text = "现在，让我们拉回思绪，继续放松",
         audio_format="mp3",
-        compression_rate=compression_rate)
+        compression_rate=compression_rate,
+        speed_ratio=speed_ratio)
     if response.code == 0:
         print(f"TTS成功，音频文件保存在: {response.audio_path}, "
                 f"音频数据大小: {response.output_length} bytes, "
@@ -19,6 +20,8 @@ async def test_tts(tts_type: TTSType = TTSType.DOUBAO, compression_rate:int = 1)
 
 if __name__ == "__main__":
     compression_rate = 10
+    speed_ratio = 0.8
     asyncio.run(test_tts(
-        tts_type=TTSType.ELEVENLABS,
-        compression_rate=compression_rate))
+        tts_type=TTSType.DoubaoLM,
+        compression_rate=compression_rate,
+        speed_ratio=speed_ratio))

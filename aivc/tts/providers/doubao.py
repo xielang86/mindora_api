@@ -35,7 +35,7 @@ class DoubaoTTS(BaseTTS):
         self.access_token = self.get_access_token()
         self.cluster = "volcano_tts"
         
-        self.voice_type = DoubaoVoice.LANXIAOYANG.value
+        self.voice_type = DoubaoVoice.GENTLE_MALE.value
         self.host = "openspeech.bytedance.com"
         self.api_url = f"https://{self.host}/api/v1/tts"
         
@@ -57,7 +57,7 @@ class DoubaoTTS(BaseTTS):
             raise ValueError(f"Environment variable {self.ACCESS_TOKEN_ENV_KEY} is not set.")
         return access_token
 
-    def _build_request(self, text: str, audio_format: str="pcm", compression_rate:int=10) -> dict:
+    def _build_request(self, text: str, audio_format: str="mp3", compression_rate:int=10, speed_ratio:float = 1.0) -> dict:
         return {
             "app": {
                 "appid": self.appid,
@@ -72,7 +72,7 @@ class DoubaoTTS(BaseTTS):
                 "encoding": audio_format,
                 "rate": 16000,
                 "compression_rate": compression_rate,
-                "speed_ratio": 1.0,
+                "speed_ratio": speed_ratio,
                 "volume_ratio": 1.0,
                 "pitch_ratio": 1.0,
             },
@@ -86,14 +86,15 @@ class DoubaoTTS(BaseTTS):
             }
         }
 
-    async def tts(self, text: str, audio_format: str="pcm", compression_rate:int=10) -> TTSRsp:
+    async def tts(self, text: str, audio_format: str="mp3", compression_rate:int=10, speed_ratio:float = 1.0) -> TTSRsp:
         try:
             start_time = time.perf_counter()
             
             request_json = self._build_request(
                 text=text,
                 audio_format=audio_format,
-                compression_rate=compression_rate)
+                compression_rate=compression_rate,
+                speed_ratio=speed_ratio)
             L.debug(f"doubao tts req: {json.dumps(request_json, indent=2, ensure_ascii=False)} trace_sn:{self.trace_sn}")
             
             async with aiohttp.ClientSession() as session:

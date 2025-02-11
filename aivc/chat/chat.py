@@ -4,14 +4,13 @@ from aivc.config.config import L, settings
 from aivc.common.trace_tree import TraceTree
 from aivc.text.parse import gen_text
 # from aivc.chat.llm.providers.deepseek import DeepSeekLLM
-# from aivc.chat.llm.providers.zhipu import ZhiPuLLM
-from aivc.chat.llm.providers.step import StepLLM
+from aivc.chat.llm.providers.zhipu import ZhiPuLLM
+# from aivc.chat.llm.providers.step import StepLLM
 # from aivc.chat.llm.providers.doubao import DouBaoLLM
 # from aivc.chat.llm.providers.moonshot import MoonShotLLM
 # from aivc.chat.llm.providers.siliconflow import SiliconFlowLLM
 # from aivc.chat.llm.providers.baichuan import BaiChuanLLM
 # from aivc.chat.llm.providers.ollama import OllamaLLM
-from aivc.chat.llm.providers.zhipu import ZhiPuLLM
 from aivc.chat.llm.manager import LLMManager,LLMType
 import inspect
 import traceback

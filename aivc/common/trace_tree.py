@@ -68,6 +68,9 @@ class TraceTree(BaseModel):
     srt: TraceSRT = Field(default_factory=TraceSRT) 
     llm: TraceLLM = Field(default_factory=TraceLLM) 
     tts: TraceTTS = Field(default_factory=TraceTTS) 
+    sleep_req: dict = {}
+    sleep_api_rsp: dict = {}
+    sleep_rsp: dict = {}
 
     def __str__(self):
         return json.dumps(self, default=lambda o: o.__dict__, ensure_ascii=False, indent=2)
