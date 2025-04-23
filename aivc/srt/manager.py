@@ -1,10 +1,12 @@
 from enum import Enum
 from aivc.srt.providers.xunfei import XunFeiSRT
+from aivc.srt.providers.doubao import DoubaoSRT
 from typing import Type
 from aivc.srt.base import BaseSRT
 
 class SRTType(Enum):
     XUNFEI = XunFeiSRT
+    DOUBAO = DoubaoSRT
 
     @classmethod
     def from_str(cls, value: str) -> 'SRTType':
@@ -21,6 +23,7 @@ class SRTManager:
 
     SRT_CLASSES: dict[SRTType, Type[BaseSRT]] = {
         SRTType.XUNFEI: XunFeiSRT,
+        SRTType.DOUBAO: DoubaoSRT,
     }
 
     @staticmethod

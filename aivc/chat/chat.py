@@ -23,6 +23,7 @@ from aivc.common.route import Route
 import asyncio
 from aivc.chat import conversation
 from aivc.text.sentence_splitter import SentenceSplitter
+from aivc.utils.tools import remove_outside_curly_brackets
 
 class Chat():
     def __init__(self, 
@@ -70,27 +71,39 @@ class Chat():
     async def gen_vision_messages(self, 
                 img_path: str, 
                 prompt: Prompt = Prompt(),
-                conversation_id: str = "") -> list:
+                conversation_id: str = "",
+                image_data:str = None,
+                image_format:str = None) -> list:
         messages = []
-        with open(img_path, 'rb') as img_file:
-            img_base = base64.b64encode(img_file.read()).decode('utf-8')
-            img_type = img_path.split('.')[-1]
-            img_str = f"data:image/{img_type};base64,{img_base}"
-            content_list  = []
-            if len(prompt.user.strip()) > 0:
-                content_list.append({
-                    "type": "text",
-                    "text": prompt.user
-                })
+
+        img_str = ""
+        if img_path:
+            with open(img_path, 'rb') as img_file:
+                img_base = base64.b64encode(img_file.read()).decode('utf-8')
+                img_type = img_path.split('.')[-1]
+                img_str = f"data:image/{img_type};base64,{img_base}"
+                
+        if image_data and image_format:
+            img_str = f"data:image/{image_format};base64,{image_data}"
+
+        if not img_str:
+            L.error(f"gen_vision_messages error img_path:{img_path} image_data:{image_data} image_format:{image_format}")
+            return []
+        
+        content_list  = []
+        if len(prompt.user.strip()) > 0:
             content_list.append({
-                "type": "image_url",
-                "image_url": {
-                    "url": img_str
-                }
+                "type": "text",
+                "text": prompt.user
             })
-            messages.append({"role": "user", "content": content_list})
-            return messages
-        return []
+        content_list.append({
+            "type": "image_url",
+            "image_url": {
+                "url": img_str
+            }
+        })
+        messages.append({"role": "user", "content": content_list})
+        return messages
 
     async def chat_stream(self,
                 question: str,
@@ -307,5 +320,30 @@ class Chat():
         L.debug(f"chat done trace_sn:{trace_tree.root.message_id} req_tokens_length:{req_tokens_length} rsp_tokens:{rsp_token_length} cost:{round(time.time() - start_time, 3)}")
         return rsp
 
+    async def chat_image(self,
+                question: str,
+                related_data: str = "",
+                trace_tree:TraceTree=TraceTree(),
+                prompt:Prompt=Prompt(),
+                file_path: str="",
+                req: Req[VCReqData] = None,
+                route:Route=None,
+                image_data:str = None,
+                image_format:str = None) -> tuple[dict, float]:
+        
+        messages = await self.gen_vision_messages(
+                img_path=file_path,
+                prompt=Prompt(user=question),
+                image_data=image_data,
+                image_format=image_format
+            )
+        response = await self.llm.async_req(messages=messages)   
+        content = response.content
+        L.debug(f"req_token:{response.input_tokens}, res_token:{response.output_tokens}, cost:{response.cost}")
 
-
+        try:
+            data = json.loads(remove_outside_curly_brackets(content))
+            return data, response.cost
+        except Exception as e:
+            L.error(f"--*-- error --*-- :{e} stack:{traceback.format_exc()}")
+            return None, response.cost

@@ -38,6 +38,7 @@ class Router:
                     return None
 
             results = await asyncio.to_thread(sync_search)
+            L.debug(f"search_kb results:{results}")
             if results and len(results) > 0:
                 first_result = results[0]
                 threshold = QuestionType.get_threshold_by_category_name(first_result.category_name)

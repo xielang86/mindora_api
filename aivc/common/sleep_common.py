@@ -1,7 +1,7 @@
 from enum import Enum
 from dataclasses import dataclass, asdict
 import json
-from typing import List, Optional
+from typing import List, Optional, Literal
 from pydantic import BaseModel
 
 class StateType(Enum):
@@ -10,10 +10,13 @@ class StateType(Enum):
     BREATHING = ("呼吸", 3)
     RELAX_1 = ("放松-1", 4)
     RELAX_2 = ("放松-2", 5)
-    SLEEP_READY = ("入睡", 6)
-    LIGHT_SLEEP = ("浅睡", 7)
-    DEEP_SLEEP = ("深睡", 8)
-    STOP = ("停止", 9)
+    RELAX_3 = ("放松-3", 6)
+
+    SLEEP_READY = ("入睡", 10)
+    LIGHT_SLEEP = ("浅睡", 11)
+    DEEP_SLEEP = ("深睡", 12)
+    
+    STOP = ("停止", 13)
     
     # 异常状态
     USING_PHONE = ("玩手机", 400)
@@ -34,17 +37,17 @@ class StateType(Enum):
 
     def is_abnormal(self) -> bool:
         """判断当前状态是否为异常状态"""
-        return self.order >= 400
+        return self.order >= self.USING_PHONE.order
 
     @classmethod
     def get_next_state(cls, scene_seq: int) -> Optional['StateType']:
-        if scene_seq >= 5 and scene_seq < 100:
+        if scene_seq >= cls.SLEEP_READY.order and scene_seq < cls.USING_PHONE.order:
             for state in cls:
                 if state.order == scene_seq:
                     return state
 
-        if scene_seq < 100:    
-            next_order = scene_seq + 1
+        if scene_seq < cls.SLEEP_READY.order:    
+            next_order = min(scene_seq + 1, cls.RELAX_3.order)
             for state in cls:
                 if state.order == next_order:
                     return state
@@ -71,10 +74,18 @@ class PoseType(Enum):
   Stand = 6
   Other = 16
 
+
+class SleepStatus(str, Enum):
+    Awake = "Awake"
+    HalfSleep = "HalfSleep"
+    LightSleep = "LightSleep"
+    DeepSleep = "DeepSleep"
+
 class BodyPoseType(str, Enum):
     Stand = "Stand"
     Sit = "Sit"
     Lie = "Lie"
+    SitDown = "SitDown"
 
 class HeadPoseType(str, Enum):
     Normal = "Normal"
@@ -159,14 +170,48 @@ class SleepResult:
 
     @classmethod
     def from_dict(cls, data: dict):
-        return cls(
-            sleep_type=SleepType[data['sleep_type']],
-            sleep_prob=data['sleep_prob'],
-            duration=data['duration'],
-            timestamp=data['timestamp'],
-            pose_info=PoseInfo(**data['pose_info']),
-            recent_action=RecentAction(**data['recent_action'])
-        )
+        try:
+            # 处理 sleep_type
+            sleep_type = SleepType[data.get('sleep_type')] if data.get('sleep_type') else None
+            
+            # 处理 pose_info
+            pose_info_data = data.get('pose_info', {})
+            if pose_info_data:
+                # 过滤掉 PoseInfo 不接受的参数
+                valid_fields = {
+                    k: v for k, v in pose_info_data.items() 
+                    if k in PoseInfo.__dataclass_fields__
+                }
+                pose_info = PoseInfo(**valid_fields)
+            else:
+                pose_info = None
+            
+            # 处理 recent_action
+            recent_action_data = data.get('recent_action', {})
+            if recent_action_data:
+                recent_action = RecentAction(**recent_action_data)
+            else:
+                recent_action = None
+            
+            return cls(
+                sleep_type=sleep_type,
+                sleep_prob=data.get('sleep_prob'),
+                duration=data.get('duration'),
+                timestamp=data.get('timestamp'),
+                pose_info=pose_info,
+                recent_action=recent_action
+            )
+        except Exception as e:
+            print(f"Error parsing sleep result data: {e}")
+            # 发生异常时返回一个包含基本信息的对象
+            return cls(
+                sleep_type=None,
+                sleep_prob=None,
+                duration=None,
+                timestamp=None,
+                pose_info=None,
+                recent_action=None
+            )
 
 @dataclass
 class ApiResponse:
@@ -226,7 +271,7 @@ class AudioDataPayload(BaseModel):
 
 class SceneExecStatus(BaseModel):
     scene_seq: int
-    status: str # IN_PROGRESS,COMPLETED
+    status: Optional[str] = None # IN_PROGRESS,COMPLETED
     
 class ReportReqData(BaseModel):
     images: ImageDataPayload
@@ -285,15 +330,6 @@ class VoiceAction(BaseModel):
     repeat: Optional[int] = None  # repeat times for single audio, 0 means infinite 
     text: Optional[str] = None  # text to speech
 
-    # def __dict__(self):
-    #     return self._get_masked_repr()
-        
-    # def _get_masked_repr(self) -> str:
-    #     d = self.model_dump()
-    #     if d.get('audio_data'):
-    #         d['audio_data'] = f'<audio_data length: {len(self.audio_data)}>'
-    #     return json.dumps(d, indent=2)
-
 class VoiceSequence(BaseModel): 
     voices: list[VoiceAction]  # sequence of voice actions 
     repeat: Optional[int] = None  # repeat times for whole sequence, 0 means infinite     
@@ -327,4 +363,13 @@ class ActionRespData(BaseModel):
     scene_seq: int
     actions: Actions
 
+class SleepSignals(BaseModel):
+    posture: Optional[Literal["sitting", "lying", "semi-reclined", "standing"]] = None
+    eyes: Optional[Literal["open", "closed"]] = None
+    handActivity: Optional[Literal["active_device_use","passive_device_placement", "reading", "eating", "none"]] = None
+
+class PersonStatus(BaseModel):
+    personPresent: Optional[bool] = None
+    sleepSignals: Optional[SleepSignals] = None
+    sleeping: Optional[bool] = None
 

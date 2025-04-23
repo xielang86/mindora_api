@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, UploadFile, File, Form, status
 from fastapi.responses import StreamingResponse
 import os
 from typing import Optional,AsyncGenerator
-from aivc.srt.manager import SRTManager
+from aivc.srt.manager import SRTManager, SRTType
 from aivc.utils.id import get_id
 from aivc.srt.common import SRTRsp
 from aivc.config.config import L,CANCELLATION_EVENTS, settings
@@ -34,7 +34,7 @@ from aivc.utils.weather import WeatherService
 from datetime import datetime
 from aivc.chat.message_manager import MessageManager
 from aivc.common.file import save_upload_file,validate_audio_file_size
-
+from aivc.api.cmd_params import CmdParamsManager
 
 router = APIRouter()
 
@@ -110,6 +110,8 @@ async def audio_queue_put(audio_queue: asyncio.Queue,resp: TTSRsp, trace_tree:Tr
         trace_tree.tts.resp_list.append(
             TraceTTSResp(
                 text = resp.text,
+                audio_filename = resp.audio_filename,
+                action_params = resp.action_params,
                 audio_file = audio_file,
                 audio_file_size = resp.output_length,
                 cost = resp.cost,
@@ -170,8 +172,8 @@ async def audio_handler(
 
     # 语音识别
     if req.data.content_type == ContentType.AUDIO.value:
-        srt = SRTManager.create_srt()
-        srt_rsp: SRTRsp = await srt.recognize(audio_path=file_path)
+        srt = SRTManager.create_srt(srt_type=SRTType.DOUBAO)
+        srt_rsp: SRTRsp = await srt.recognize(audio_path=file_path, message_id=trace_sn)
         
         trace_srt = TraceSRT(
             cost=srt_rsp.cost,
@@ -240,7 +242,25 @@ async def audio_handler(
     answer = ""
     if isinstance(route.kb_result, KBSearchResult):
         L.debug(f"voice_chat kb_result trace_sn:{trace_sn} category_name:{route.kb_result.category_name}")
-        if route.kb_result.category_name == QuestionType.SONG.value:
+        cmd_manager = CmdParamsManager.get_instance()
+        if cmd_manager.is_cmd_question_type(route.kb_result.category_name):
+            # 设备控制命令
+            action_param = cmd_manager.get_action_params(route.kb_result.category_name)
+            text, audio_filename = cmd_manager.get_cmd_response(route.kb_result.category_name)
+            rsp = TTSRsp(
+                action="cmd",
+                action_params=action_param,
+                text=text,
+                audio_filename = audio_filename,
+                audio_path = None,
+                output_length=0,
+                audio_data= None,
+                audio_format= None,
+                stream_seq=1)
+            await audio_queue_put(audio_queue,rsp,trace_tree)
+            # 发送结束标记
+            await audio_queue_put(audio_queue,TTSRsp(stream_seq=-1),trace_tree)
+        elif route.kb_result.category_name == QuestionType.SONG.value:
             song_file = SongPlayer().get_next_song(username=trace_tree.root.client_addr)
             song_name = os.path.splitext(os.path.basename(song_file))[0]
             L.debug(f"voice_chat song trace_sn:{trace_sn} song_file:{song_file} song_name:{song_name}")
@@ -275,29 +295,25 @@ async def audio_handler(
                 action=QuestionType.TAKE_PHOTO.value,
                 format=req.data.tts_audio_format)
             answer = sound_info.text
-            # L.debug(f"voice_chat sound trace_sn:{trace_sn} sound_info:{sound_info.selected_sound_file}")
-            # with open(sound_info.selected_sound_file, 'rb') as audio_file:
-            #     audio_data =  audio_file.read()
             rsp = TTSRsp(
                 action=QuestionType.TAKE_PHOTO.value,
                 text=sound_info.text,
-                # audio_path=sound_info.selected_sound_file,
                 audio_path = None,
                 output_length=0,
                 audio_data= None,
                 audio_format= None,
-                # sample_format="S16LE",
-                # bitrate=256000,
-                # channels=1,
-                # sample_rate=16000,
                 stream_seq=1)
             await audio_queue_put(audio_queue,rsp,trace_tree)
             # 发送结束标记
             await audio_queue_put(audio_queue,TTSRsp(stream_seq=-1),trace_tree)
         elif route.kb_result.category_name == QuestionType.SLEEP_ASSISTANT.value:
+            sound_info = ActionSound().get_sound_info(
+                action=QuestionType.SLEEP_ASSISTANT.value,
+                format=AudioFormat.MP3.value)
+            answer = sound_info.text            
             rsp = TTSRsp(
                 action=QuestionType.SLEEP_ASSISTANT.value,
-                text="",
+                text=answer,
                 audio_path = None,
                 output_length=0,
                 audio_data= None,
@@ -517,7 +533,9 @@ async def voice_chat_ws(req: Req[VCReqData], trace_tree:TraceTree = None) -> Asy
 
                 resp_data = VCRespData(
                         action=tts_rsp.action,
+                        action_params=tts_rsp.action_params,
                         text=tts_rsp.text,
+                        audio_filename=tts_rsp.audio_filename,
                         audio_format=tts_rsp.audio_format,
                         audio_data=audio_data_base64,
                         stream_seq=tts_rsp.stream_seq,

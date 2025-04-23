@@ -125,8 +125,8 @@ class Settings(BaseSettings):
 
     MODELS_DIR:str = "models/"
 
-    EMBEDDING_MODEL_V1: str = MODELS_DIR + "xiaobu-embedding-v2"
-    TOKENIZER_MODEL: str = MODELS_DIR + "Qwen2-0.5B-Instruct-GPTQ-Int4"
+    EMBEDDING_MODEL_V1: str = os.path.join(PATH, MODELS_DIR + "xiaobu-embedding-v2")
+    TOKENIZER_MODEL: str = os.path.join(PATH, MODELS_DIR + "Qwen2-0.5B-Instruct-GPTQ-Int4")
 
     HTTP_PROXY:str = "http://127.0.0.1:7890"
     HTTP_PROXIES:dict = {
@@ -155,6 +155,7 @@ class Settings(BaseSettings):
     SOUND_DIR: str = os.path.join(PATH, "assets/sound")
 
     AI_RPC_SERVER: str = "tcp://121.43.54.25:4242"
+    AI_RPC_MOCK: bool = False
 
 
 settings = Settings() 

@@ -1,12 +1,15 @@
 from pydantic import BaseModel
 from typing import Optional
 from enum import Enum
-    
+from aivc.common.chat import ActionParams
+
 class TTSRsp(BaseModel):
     code: int = 0
     message: str = ""
     action: Optional[str] = None
     text: Optional[str] = None
+    action_params: Optional[ActionParams] = None
+    audio_filename: Optional[str] = None
     audio_format: Optional[str] = None
     sample_format: Optional[str] = None 
     bitrate: Optional[int] = None

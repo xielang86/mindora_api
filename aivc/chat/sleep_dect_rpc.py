@@ -1,6 +1,7 @@
+import asyncio
 from aivc.common.chat import ReportReqData
 from aivc.common.trace_tree import TraceTree
-from aivc.common.sleep_common import ApiResponse, SleepResult, PoseInfo, SceneExecStatus
+from aivc.common.sleep_common import ApiResponse, SleepResult, PoseInfo, VoiceSequence
 import zerorpc
 from aivc.config.config import L,settings
 import traceback
@@ -8,36 +9,50 @@ import json
 from aivc.common.sleep_config import StateType, states_dict,Actions
 from aivc.common.sleep_voice import voice_manager
 import base64
-from typing import Optional
 import time
+from aivc.common.sleep_common import EyeStatus, BodyPoseType, SleepStatus, PersonStatus
+from aivc.chat.chat import Chat, ContentType
+from aivc.chat.prompt_selector import PromptTemplate
+from aivc.chat.llm.manager import LLMType, ZhiPuLLM
+import random
 
 class RpcClient:
-    """RPC客户端单例类"""
+    """RPC客户端异步安全单例类"""
     _instance = None
     _client = None
-    _last_connect_time = 0
-    _reconnect_interval = 5  # 重连间隔时间（秒）
-
+    _lock = asyncio.Lock()
+    _instance_lock = asyncio.Lock()
+    
     def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
+        return super().__new__(cls)
+        
+    @classmethod
+    async def get_instance(cls) -> 'RpcClient':
+        if not cls._instance:
+            async with cls._instance_lock:
+                if not cls._instance:
+                    cls._instance = RpcClient()
         return cls._instance
 
-    def get_client(self):
-        current_time = time.time()
-        
-        # 如果客户端不存在或者最后连接时间超过重连间隔，尝试重新连接
-        if (self._client is None or 
-            current_time - self._last_connect_time > self._reconnect_interval):
-            try:
-                self._client = zerorpc.Client(timeout=2)
-                self._client.connect(settings.AI_RPC_SERVER)
-                self._last_connect_time = current_time
-            except Exception as e:
-                L.error(f"RPC连接失败: {str(e)}")
-                self._client = None
-                
-        return self._client
+    def reset_client(self):
+        self._client = None
+
+    async def get_client(self):
+        async with self._lock:
+            if not self._client:
+                try:
+                    self._client = zerorpc.Client(timeout=2)
+                    self._client.connect(settings.AI_RPC_SERVER)
+                    L.debug(f"RPC服务器:{settings.AI_RPC_SERVER} 连接成功")
+                except Exception as e:
+                    L.error(f"RPC服务器:{settings.AI_RPC_SERVER} 连接失败: {str(e)}")
+                    await self.reset_client()
+            return self._client
+
+    @classmethod
+    async def get_connected_client(cls):
+        instance = await cls.get_instance()
+        return await instance.get_client()
 
 async def get_state_by_api(report_data: ReportReqData, trace_tree: TraceTree = None) -> ApiResponse:
     try:
@@ -50,10 +65,8 @@ async def get_state_by_api(report_data: ReportReqData, trace_tree: TraceTree = N
         if report_data.audio and report_data.audio.data:
             audio_count = len(report_data.audio.data)
         L.debug(f"get_state_by_api 开始检测睡眠场景 [message_id={message_id}], report_data: {image_count} images, {audio_count} audio")
-
-        # 使用RPC客户端单例
-        client = RpcClient()
-        rpc = client.get_client()
+                
+        rpc = await RpcClient.get_connected_client()
         if not rpc:
             L.error(f"无法获取RPC客户端 [message_id={message_id}]")
             return None
@@ -97,17 +110,19 @@ async def get_state_by_api(report_data: ReportReqData, trace_tree: TraceTree = N
                     data=sleep_result
                 )
                 
-                trace_tree.sleep_api_rsp = api_rsp.to_dict()
+                log_dict = api_rsp.to_dict()
+                log_dict['cost'] = round(time.time()-start_time, 2)
+                trace_tree.sleep_api_rsp = log_dict
                 return api_rsp
             return None
             
         except zerorpc.TimeoutExpired as e:
             L.error(f"RPC调用超时 [message_id={message_id}]: {str(e)}\n{traceback.format_exc()}")
+            (await RpcClient.get_instance()).reset_client()
             return None
         except Exception as e:
             L.error(f"RPC调用失败 [message_id={message_id}]: {str(e)}\n{traceback.format_exc()}")
-            # 发生错误时清空客户端，触发重连
-            client._client = None
+            (await RpcClient.get_instance()).reset_client()
             return None
             
     except Exception as e:
@@ -115,37 +130,6 @@ async def get_state_by_api(report_data: ReportReqData, trace_tree: TraceTree = N
         L.error(f"检测睡眠场景时发生未知错误 [message_id={message_id}]: {str(e)}\n{traceback.format_exc()}")
         return None
 
-class StateManager:
-    """管理状态转换的类 - 单例模式"""
-    _instance = None
-    
-    def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-            cls._instance._state_cache = {}
-        return cls._instance
-    
-    async def update_state_by_exec_status(self, conversation_id: str, scene_exec_status: SceneExecStatus) -> Optional[StateType]:
-        rsp_state = await self.get_current_state(conversation_id)
-        if scene_exec_status and scene_exec_status.scene_seq < StateType.RELAX_2.order and scene_exec_status.status == "COMPLETED":
-            rsp_state = StateType.get_next_state(scene_exec_status.scene_seq)
-            L.debug(f"update_state_by_exec_status 会话 {conversation_id} scene_exec_status:{scene_exec_status} COMPLETED, 更新状态为 {rsp_state}")
-            await self.set_state(conversation_id, rsp_state)
-        
-        L.debug(f"update_state_by_exec_status 更新会话 {conversation_id} scene_exec_status:{scene_exec_status} 的状态为 {rsp_state}")
-        return rsp_state
-    
-    async def get_current_state(self, conversation_id: str) -> Optional[StateType]:
-        current_state = self._state_cache.get(conversation_id, StateType.PREPARE)
-        L.debug(f"get_current_state 获取会话 {conversation_id} 的当前状态 {current_state}")
-        return current_state
-    
-    async def set_state(self, conversation_id: str, state: StateType) -> None:
-        if state is not None and not state.is_abnormal():
-            L.debug(f"set_state 设置会话 {conversation_id} 的状态为 {state.name}")
-            self._state_cache[conversation_id] = state
-        else:
-            L.error(f"set_state 无法设置会话 {conversation_id} 的状态为 state：{state}")
 
 async def process_state_audio(voice_action) -> tuple[str, str]:
     """
@@ -170,7 +154,28 @@ async def process_state_audio(voice_action) -> tuple[str, str]:
         return None, None
 
 async def get_actions(state:StateType) -> Actions:
-    return states_dict.get(state)    
+    actions = states_dict.get(state)
+    
+    # 处理异常状态，如玩手机或坐起
+    if state and state.is_abnormal() and actions and actions.voice and actions.voice.voices:
+        # 从语音列表中随机选择一个
+        random_voice = random.choice(actions.voice.voices)
+        
+        # 创建一个新的 VoiceSequence，只包含随机选择的语音
+        new_voice_sequence = VoiceSequence(voices=[random_voice])
+        
+        # 创建新的 Actions 对象，只保留随机选择的语音
+        new_actions = Actions(
+            action_feature=actions.action_feature,
+            voice=new_voice_sequence,
+            bgm=actions.bgm,
+            light=actions.light,
+            fragrance=actions.fragrance,
+            display=actions.display
+        )
+        return new_actions
+        
+    return actions
 
 async def get_state_voices_duration(state: StateType) -> float:
     total_duration = 0.0
@@ -184,42 +189,127 @@ async def get_state_voices_duration(state: StateType) -> float:
     
     return max(total_duration, 30.0)
 
-def determine_state_type(sleep_status: str, pose: PoseInfo, recent_action: str) -> StateType:
-    if sleep_status == "HalfSleep":
-        return StateType.SLEEP_READY
-    elif sleep_status == "LightSleep":
-        return StateType.LIGHT_SLEEP
-    elif sleep_status == "DeepSleep":
-        return StateType.DEEP_SLEEP
-    elif sleep_status == "Awake":
+def determine_state_type(sleep_status: str, pose: PoseInfo, recent_action: str) -> tuple[StateType, str, str]:
+    state_type = None
+    eye_status = None
+    lie_status = None
+    
+    LIE_POSES = ["HalfLie", "LieFlat", "Lie"]
+    
+    if pose is not None:
+        left_eye_pose = pose.left_eye
+        right_eye_pose = pose.right_eye
+        eye_status = EyeStatus.Closed.value if left_eye_pose == EyeStatus.Closed.value and right_eye_pose == EyeStatus.Closed.value else EyeStatus.Open.value
+
+        body_pose = pose.body
+        lie_status = BodyPoseType.Lie.value if body_pose in LIE_POSES else None
+    
+    if sleep_status ==SleepStatus.Awake.value:
         if pose is not None:
             body_pose = pose.body
             left_hand_pose = pose.left_hand
             right_hand_pose = pose.right_hand
-
+            
             # StateType.PREPARE
-            # (半躺 or 躺姿) and 存在 and !(手持)
-            if (body_pose in ["HalfLie", "LieFlat"] and
+            if (body_pose in LIE_POSES and
                 left_hand_pose != "LiftOn" and 
                 right_hand_pose != "LiftOn"):
-                return StateType.PREPARE
-            
-            # StateType.USING_PHONE
-            # (坐姿 or 半躺 or 躺姿) and 存在 and (手持)
-            if (body_pose in ["SitDown", "HalfLie", "LieFlat"] and
-                (left_hand_pose == "LiftOn" or 
-                right_hand_pose == "LiftOn")):
-                return StateType.USING_PHONE
+                state_type = StateType.PREPARE
             
             # StateType.SITTING_UP
-            # (坐姿) and 存在
             if body_pose == "SitDown":
-                return StateType.SITTING_UP
+                state_type = StateType.SITTING_UP 
             
+            # StateType.USING_PHONE
+            if (body_pose in LIE_POSES + ["SitDown"] and
+                (left_hand_pose == "LiftOn" or 
+                right_hand_pose == "LiftOn")):
+                state_type = StateType.USING_PHONE 
+                            
             # StateType.LEAVING
-            # (站姿) and 存在
             if body_pose == "Stand":
-                return StateType.LEAVING
+                state_type = StateType.LEAVING 
         else:
-            return StateType.LEAVING
-    return None
+            state_type = StateType.LEAVING 
+
+    return state_type, eye_status, lie_status
+
+# api_state, eye_status, lie_status
+async def get_state_by_llm(report_data: ReportReqData, trace_tree: TraceTree = None) -> tuple[dict, float]:
+    message_id = trace_tree.root.message_id if trace_tree and trace_tree.root else "unknown"
+    try:
+        llm_type = LLMType.ZhiPu
+        model_name=ZhiPuLLM.GLM_4V_FlASH
+        chat_instance = Chat(
+            llm_type=llm_type,
+            model_name=model_name,
+            timeout=6,
+            content_type=ContentType.IMAGE.value
+        )
+        question = PromptTemplate.SLEEP_CHECK_PROMPT
+
+        last_image = None
+        if report_data and report_data.images and report_data.images.data:
+            last_image = report_data.images.data[-1]
+        else:
+            L.error(f"get_state_by_llm 无法获取图片数据 [message_id={message_id}]")
+            return None, "", ""
+        
+        try:
+            response, cost = await asyncio.wait_for(
+                chat_instance.chat_image(
+                    question=question,
+                    image_data=last_image,
+                    image_format=report_data.images.format
+                ),
+                timeout=6  
+            )
+            L.debug(f"get_state_by_llm [message_id={message_id}] response:{response}, cost:{cost}")
+
+
+            response["model"] = model_name
+            response["cost"] = cost
+            trace_tree.llm.model = model_name
+            trace_tree.llm.cost = cost
+            trace_tree.sleep_api_rsp_llm = response
+
+            return response, cost
+        except asyncio.TimeoutError:
+            L.error(f"get_state_by_llm LLM请求超时 [message_id={message_id}]")
+            return {}, 0
+    except Exception as e:
+        L.error(f"get_state_by_llm 发生异常 [message_id={message_id}]: {str(e)}\n{traceback.format_exc()}")
+        return {}, 0
+
+async def llm_response_to_state(response: dict) -> tuple[StateType, str, str]:
+    state = None
+    eye_status = None
+    lie_status = None
+    try:
+        person_status = PersonStatus(**response)
+        if person_status and person_status.sleepSignals:
+            posture = person_status.sleepSignals.posture
+            if posture == "sitting":
+                state = StateType.SITTING_UP
+                lie_status = BodyPoseType.Sit.value
+            elif posture == "standing":
+                state = StateType.LEAVING
+                lie_status = BodyPoseType.Stand.value
+            elif posture == "lying" or posture == "lying_down":
+                state = StateType.PREPARE
+                lie_status = BodyPoseType.Lie.value
+
+            if person_status.sleepSignals.eyes == "closed":
+                eye_status = EyeStatus.Closed.value
+            
+            if person_status.sleepSignals.eyes == "open":
+                eye_status = EyeStatus.Open.value
+
+            handActivity = person_status.sleepSignals.handActivity
+            if handActivity == "active_device_use":
+                state = StateType.USING_PHONE
+
+    except Exception as e:
+        L.error(f"response_to_state error:{e}")  
+
+    return state, eye_status, lie_status

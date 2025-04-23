@@ -13,9 +13,9 @@ states_dict: Dict[StateType, Actions] = {
             voices=[
                 VoiceAction(
                     action="play",
-                    text="请找到一个不易被打扰的地方，选择一个让你感到舒适的姿势。",
+                    text="在开始冥想前，请先找到一个不易被打扰的地方，选择一个让你感到舒适的姿势。",
                     wait_time=1.5,
-                    filename="PREPARE_0e4469908950edf80d00d50388e22b72.mp3"
+                    filename="PREPARE_0a5d18b7ccc364d4a6878642e3cd4875.mp3"
                 ),
                 VoiceAction(
                     action="play",
@@ -53,7 +53,7 @@ states_dict: Dict[StateType, Actions] = {
     ),
     
     StateType.POSTURE: Actions(
-        action_feature="(半躺 || 躺姿 ) AND 存在 AND !(手持)",
+        action_feature="",
         voice=VoiceSequence(
             voices=[
                 VoiceAction(
@@ -83,7 +83,7 @@ states_dict: Dict[StateType, Actions] = {
                 VoiceAction(
                     action="play", 
                     text="此刻你的身体正被椅子和下方的大地稳稳的承托着",
-                    wait_time=2,
+                    wait_time=3,
                     filename="POSTURE_e444af1a781082ba399ff9eaebb507eb.mp3"
                 )
             ]
@@ -104,9 +104,9 @@ states_dict: Dict[StateType, Actions] = {
     ),
     
     StateType.BREATHING: Actions(
-        action_feature="(半躺 || 躺姿 ) AND 存在 AND !(手持)",
+        action_feature="",
         voice=VoiceSequence(
-           voices=[
+            voices=[
                 VoiceAction(
                     action="play",
                     text="现在，让我们做几组深呼吸。用鼻子深深吸气",
@@ -152,25 +152,25 @@ states_dict: Dict[StateType, Actions] = {
                 VoiceAction(
                     action="play",
                     text="感觉呼吸渐渐慢下来，变得越来越深长",
-                    wait_time=8,
+                    wait_time=6,
                     filename="BREATHING_bb6957ab273cbdf11a4aae3244e3f5cc.mp3"
                 ),
                 VoiceAction(
                     action="play",
                     text="感觉身体的每一寸肌肉正随着每一次的呼吸，慢慢的放松下来。",
-                    wait_time=8,
+                    wait_time=6,
                     filename="BREATHING_7941fd6f49d176f0dd2ee7bb0a93afcd.mp3"
                 ),
                 VoiceAction(
                     action="play",
                     text="你做的很好",
-                    wait_time=3,
+                    wait_time=2,
                     filename="BREATHING_bd7ce9ce5e10201cdfe0b9bd4f634a5e.mp3"
                 ),
                 VoiceAction(
                     action="play",
                     text="现在让我们将呼吸，调节成我们日常呼吸的节奏",
-                    wait_time=3,
+                    wait_time=2,
                     filename="BREATHING_b361ddc8c2ca77b5493c7469c6e9b3d6.mp3"
                 ),
                 VoiceAction(
@@ -185,34 +185,29 @@ states_dict: Dict[StateType, Actions] = {
                     wait_time=3,
                     filename="BREATHING_5049ad4ccc4a737f2361b13a47090613.mp3"
                 ),
+            
                 VoiceAction(
                     action="play",
-                    text="吸气时",
-                    wait_time=6,
-                    filename="BREATHING_6e8fe98a2b2102f12ced5ea46aea85af.mp3"
-                ),
-                VoiceAction(
-                    action="play",
-                    text="感觉气流经过鼻腔、喉咙、胸腔，一直到腹部。",
-                    wait_time=6,
-                    filename="BREATHING_e55fb3e213cba1408e0ef40c547ae640.mp3"
+                    text="吸气时，感觉气流经过鼻腔、喉咙、胸腔，一直到腹部。",
+                    wait_time=4,
+                    filename="BREATHING_c7ca9e5955e8c5e66fe4fb25ce05b801.mp3"
                 ),
                 VoiceAction(
                     action="play",
                     text="呼气时，感受气流从嘴巴缓缓呼出的过程。",
-                    wait_time=6,
+                    wait_time=4,
                     filename="BREATHING_4cb6818bd595b5516cc6e7b4757809cd.mp3"
                 ),
                 VoiceAction(
                     action="play",
                     text="此刻你只需要将自己的注意力放在呼吸上。",
-                    wait_time=6,
+                    wait_time=4,
                     filename="BREATHING_b270ed55b5b4dc2123ec0797ef450cb5.mp3"
                 ),
                 VoiceAction(
                     action="play",
                     text="感觉你的思绪随着每一次又深又长的呼吸，一点点的释放出去。",
-                    wait_time=6,
+                    wait_time=4,
                     filename="BREATHING_91003bd2e4ec5844b6c9f5d1c5da573f.mp3"
                 ),
                 VoiceAction(
@@ -222,6 +217,7 @@ states_dict: Dict[StateType, Actions] = {
                     filename="BREATHING_7585a88baebd17e29d5c36a74a2f2bd8.mp3"
                 ),
             ]
+
         ),
         bgm=BgmAction(
             action=MediaAction.PLAY,
@@ -239,77 +235,72 @@ states_dict: Dict[StateType, Actions] = {
     ),
     
     StateType.RELAX_1: Actions(
-        action_feature="(半躺 || 躺姿 ) AND 存在 AND !(手持)",
+        action_feature="",
         voice=VoiceSequence(
         voices=[
-                VoiceAction(
-                    action="play",
-                    text="现在，继续将注意力，带到腹部",
-                    wait_time=8,
-                    filename="RELAX_1_f493e41a829211386884d7e1ae27abdf.mp3"
-                ),
-                VoiceAction(
-                    action="play",
-                    text="仔细的体会一下，你的腹部是怎样跟随着呼吸上下起伏的。",
-                    wait_time=8,
-                    filename="RELAX_1_1c8f90b4f914a54f9e8b0ce67fc0952b.mp3"
-                ),
-                VoiceAction(
-                    action="play",
-                    text="你可以将一只手，轻轻的放在腹部，让手跟随着腹部一起上下起伏。",
-                    wait_time=8,
-                    filename="RELAX_1_274cce17599bfbe6d9a887aa46cbe2b8.mp3"
-                ),
-                VoiceAction(
-                    action="play",
-                    text="接下来的时间",
-                    wait_time=4,
-                    filename="RELAX_1_c49ec684c3c07d6a15f0f234bb0b0251.mp3"
-                ),
-                VoiceAction(
-                    action="play",
-                    text="将注意力持续的保持在这个部位，仔细的体会，呼吸给身体带来的感觉。",
-                    wait_time=4,
-                    filename="RELAX_1_225bebee5a4a2dfa4ed8cb756f13f99e.mp3"
-                ),
-                VoiceAction(
-                    action="play",
-                    text="感觉自己就像是一杯，被摇晃过的水，正随着呼吸一点点的平静摇晃，一点点的平静下来。",
-                    wait_time=8,
-                    filename="RELAX_1_55e1498701aa227d2fd8d5ac46ef5d2d.mp3"
-                ),
-                VoiceAction(
-                    action="play",
-                    text="在这个过程中",
-                    wait_time=4,
-                    filename="RELAX_1_ad1e671152487bb40daede8cc38eaf9a.mp3"
-                ),
-                VoiceAction(
-                    action="play",
-                    text="或许杂乱的思绪仍然会不时浮现出来",
-                    wait_time=4,
-                    filename="RELAX_1_11e6a3fa3caa2c265564202c09a2164f.mp3"
-                ),
-                VoiceAction(
-                    action="play",
-                    text="给你带来干扰，让注意力从身体上悄然游走",
-                    wait_time=4,
-                    filename="RELAX_1_0e56b97ebb717c43c9edbbd4a876742e.mp3"
-                ),
-                VoiceAction(
-                    action="play",
-                    text="没关系。这是非常自然的现象。",
-                    wait_time=8,
-                    filename="RELAX_1_3b2a13dc2c6f2ecbf02a52b8adaf1908.mp3"
-                ),
-                VoiceAction(
-                    action="play",
-                    text="你只需要在发现注意力出现游走的时候，重新将注意力，带回到腹部，感受呼吸给腹部带来的起伏就好。",
-                    wait_time=8,
-                    filename="RELAX_1_1230b134033f975c74a4c63d45ea6d12.mp3"
-                ),
-            ]
-        ),
+            VoiceAction(
+                action="play",
+                text="现在，让我们顺着呼吸的气流，将注意力带到腹部",
+                wait_time=3,
+                filename="RELAX_1_a8bf6c1590f26967ff1a4e4ebae6a8a5.mp3"
+            ),
+            VoiceAction(
+                action="play",
+                text="仔细的体会一下，你的腹部是怎样跟随着呼吸上下起伏的。",
+                wait_time=3,
+                filename="RELAX_1_1c8f90b4f914a54f9e8b0ce67fc0952b.mp3"
+            ),
+            VoiceAction(
+                action="play",
+                text="你可以将一只手，轻轻的放在腹部，让手跟随着腹部一起上下起伏。",
+                wait_time=4,
+                filename="RELAX_1_274cce17599bfbe6d9a887aa46cbe2b8.mp3"
+            ),
+            VoiceAction(
+                action="play",
+                text="接下来的时间，请将注意力持续的保持在这个部位",
+                wait_time=2,
+                filename="RELAX_1_f2f111ec7ab70589e1ed2f7c557274ca.mp3"
+            ),
+            VoiceAction(
+                action="play",
+                text="仔细的体会，呼吸给身体带来的感觉。",
+                wait_time=3,
+                filename="RELAX_1_1795be936a2e8f560044b50bdf15001e.mp3"
+            ),
+            VoiceAction(
+                action="play",
+                text="感觉自己就像是一杯，被摇晃过的水，正随着呼吸一点点的平静摇晃，一点点的平静下来。",
+                wait_time=8,
+                filename="RELAX_1_55e1498701aa227d2fd8d5ac46ef5d2d.mp3"
+            ),
+            VoiceAction(
+                action="play",
+                text="在这个过程中，或许杂乱的思绪仍然会不时浮现出来",
+                wait_time=2,
+                filename="RELAX_1_617e8e5b08175e5b4d726feea6c4f048.mp3"
+            ),
+           
+            VoiceAction(
+                action="play",
+                text="给你带来干扰，让注意力从身体上悄然游走",
+                wait_time=3,
+                filename="RELAX_1_0e56b97ebb717c43c9edbbd4a876742e.mp3"
+            ),
+            VoiceAction(
+                action="play",
+                text="没关系。这是非常自然的现象。",
+                wait_time=2,
+                filename="RELAX_1_3b2a13dc2c6f2ecbf02a52b8adaf1908.mp3"
+            ),
+            VoiceAction(
+                action="play",
+                text="你只需要在发现注意力出现游走的时候，重新将注意力，带回到腹部，感受呼吸给腹部带来的起伏就好。",
+                wait_time=3,
+                filename="RELAX_1_1230b134033f975c74a4c63d45ea6d12.mp3"
+            ),
+        ]        
+    ),
         bgm=BgmAction(
             action=MediaAction.PLAY,
             filename="bo_1036.mp3",
@@ -326,22 +317,28 @@ states_dict: Dict[StateType, Actions] = {
     ),
     
     StateType.RELAX_2: Actions(
-        action_feature="(半躺 || 躺姿 ) AND 存在 AND !(手持)",
+        action_feature="",
         voice=VoiceSequence(
-            voices=[
-                VoiceAction(
-                    action="play",
-                    text="很好，就像这样，你可以将手放回大腿上，继续保持舒缓的呼吸。",
-                    wait_time=8,
-                    filename="RELAX_2_06728bad68a989b8f735dac2b86102c0.mp3"
-                ),
-                VoiceAction(
-                    action="play",
-                    text="让我们慢慢的将意识带回到当下所处的空间。",
-                    wait_time=8,
-                    filename="RELAX_2_02971319602ea73cb3309270c2ca5be3.mp3"
-                ),
-            ]
+        voices=[
+            VoiceAction(
+                action="play",
+                text="很好，就像这样，你可以将手放回大腿上，继续保持绵长舒缓的呼吸。",
+                wait_time=6,
+                filename="RELAX_2_3ba13deebbfaeb5a4cf04c82754a40b6.mp3"
+            ),
+            VoiceAction(
+                action="play",
+                text="让每一次呼气，都带走你身体里的疲惫。",
+                wait_time=6,
+                filename="RELAX_2_bfd4eca8e39de89c7265bf8e6d55730a.mp3"
+            ),
+            VoiceAction(
+                action="play",
+                text="感觉你的心也随着呼吸，慢慢变得舒缓而平静。",
+                wait_time=6,
+                filename="RELAX_2_e5ea75249220a27add48c06b54260940.mp3"
+            ),
+        ]
         ),
         bgm=BgmAction(
             action=MediaAction.PLAY,
@@ -357,27 +354,247 @@ states_dict: Dict[StateType, Actions] = {
             count=1
         )
     ),    
+
+    StateType.RELAX_3: Actions(
+        action_feature="",
+        voice=VoiceSequence(
+        voices=[
+            VoiceAction(
+                action="play",
+                text="现在，带着这样舒缓和平静的感觉",
+                wait_time=3,
+                filename="RELAX_3_3022ae8a480d2ec7895267c06e62a7d7.mp3"
+            ),
+            VoiceAction(
+                action="play",
+                text="我将邀请你和我一起，前往一个宁静惬意的空间",
+                wait_time=3,
+                filename="RELAX_3_a6021cb1d737ff2d7a8a43485997da19.mp3"
+            ),
+            VoiceAction(
+                action="play",
+                text="想象一下，这是一个宁静傍晚。",
+                wait_time=3,
+                filename="RELAX_3_d1add3fa1571e5bb8b48eb59d7a0ce95.mp3"
+            ),
+            VoiceAction(
+                action="play",
+                text="太阳正缓缓的消失在海岸，落日的霞光铺满了整个海面。",
+                wait_time=3,
+                filename="RELAX_3_f75c822ad32eb93a43af4efb2cca92dc.mp3"
+            ),
+            VoiceAction(
+                action="play",
+                text="你将双脚，踩进潮湿的软沙中。",
+                wait_time=3,
+                filename="RELAX_3_2e78fba7a4bdc3b8e033bd78ccd7a3f3.mp3"
+            ),
+            VoiceAction(
+                action="play",
+                text="感受海浪正在温柔的拍打着你的脚面。",
+                wait_time=3,
+                filename="RELAX_3_0dbdbe25d5320884c08de1d656cae918.mp3"
+            ),
+            VoiceAction(
+                action="play",
+                text="你的双脚，可以感觉到海水带来的温暖",
+                wait_time=3,
+                filename="RELAX_3_950cdb502b81547cb8bc5170577d9a76.mp3"
+            ),
+            VoiceAction(
+                action="play",
+                text="体会这股温暖，正慢慢的透过你的皮肤，传递到你的身体。",
+                wait_time=4,
+                filename="RELAX_3_85e1e21c9d0c0f0f40dcedd92e43759a.mp3"
+            ),
+            VoiceAction(
+                action="play",
+                text="从你的脚趾",
+                wait_time=1.2,
+                filename="RELAX_3_60c0a661673bfd0c4e0a94106e78c56d.mp3"
+            ),
+            VoiceAction(
+                action="play",
+                text="脚掌",
+                wait_time=1.2,
+                filename="RELAX_3_4339bd12983b2e8c50cf86f348d888eb.mp3"
+            ),
+            VoiceAction(
+                action="play",
+                text="脚面",
+                wait_time=1.2,
+                filename="RELAX_3_88b5c239c20894e2ce33cb31566d5643.mp3"
+            ),
+            VoiceAction(
+                action="play",
+                text="脚踝",
+                wait_time=1.2,
+                filename="RELAX_3_07b6df2e119f0584ebc8ae38a9e5f16c.mp3"
+            ),
+            VoiceAction(
+                action="play",
+                text="小腿",
+                wait_time=1.2,
+                filename="RELAX_3_26a9ea20bae6fa79521c83b6116def97.mp3"
+            ),
+            VoiceAction(
+                action="play",
+                text="自下而上的来到你的膝盖",
+                wait_time=1.2,
+                filename="RELAX_3_de3bd6c4258adee1912bf4ed60a662b1.mp3"
+            ),
+            VoiceAction(
+                action="play",
+                text="大腿",
+                wait_time=1.2,
+                filename="RELAX_3_69276b9c68a77c243fd3bff2eb99fbbd.mp3"
+            ),
+            VoiceAction(
+                action="play",
+                text="臀部",
+                wait_time=1.2,
+                filename="RELAX_3_006176f6070953796c98b1a862995111.mp3"
+            ),
+            VoiceAction(
+                action="play",
+                text="腰部",
+                wait_time=1.2,
+                filename="RELAX_3_963836fb12b5400e3cb1d3c1ac8efa14.mp3"
+            ),
+            VoiceAction(
+                action="play",
+                text="腹部",
+                wait_time=1.2,
+                filename="RELAX_3_d2f94f3596a4035cf01cdfff30bc6c4c.mp3"
+            ),
+            VoiceAction(
+                action="play",
+                text="感受这股温暖的水流，在身体里游走。",
+                wait_time=1.2,
+                filename="RELAX_3_5b466122e879a47e3ffa07042f53e98f.mp3"
+            ),
+            VoiceAction(
+                action="play",
+                text="从双手的指尖",
+                wait_time=1.2,
+                filename="RELAX_3_d1a364faaa79227542cf752bfec9b81d.mp3"
+            ),
+            VoiceAction(
+                action="play",
+                text="手指",
+                wait_time=1.2,
+                filename="RELAX_3_7f3784c850518b5520e1a9b978a87dc4.mp3"
+            ),
+            VoiceAction(
+                action="play",
+                text="手掌",
+                wait_time=1.2,
+                filename="RELAX_3_8b1d4e6b680ae027d5f4adfecdbf3f6b.mp3"
+            ),
+            VoiceAction(
+                action="play",
+                text="手腕",
+                wait_time=1.2,
+                filename="RELAX_3_08755d2a66c8210580e9b4410db4db6d.mp3"
+            ),
+            VoiceAction(
+                action="play",
+                text="小手臂",
+                wait_time=1.2,
+                filename="RELAX_3_e06ced3dd1c0481826bce1476bf3ed13.mp3"
+            ),
+            VoiceAction(
+                action="play",
+                text="大手臂",
+                wait_time=1.2,
+                filename="RELAX_3_b9c4c656d09aff1e6c01a4063859dcf9.mp3"
+            ),
+            VoiceAction(
+                action="play",
+                text="直至整个肩部",
+                wait_time=1.2,
+                filename="RELAX_3_272fff979553d714d95c0a244ce91e6f.mp3"
+            ),
+            VoiceAction(
+                action="play",
+                text="感觉自己的每一寸肌肤都被温暖包裹着。",
+                wait_time=2,
+                filename="RELAX_3_2caa6b9d4c0ea805db8f8bfdb2a94e39.mp3"
+            ),
+            VoiceAction(
+                action="play",
+                text="你可以记住，这个宁静的沙滩",
+                wait_time=2,
+                filename="RELAX_3_86bcc92c02999153cf819b689765d581.mp3"
+            ),
+            VoiceAction(
+                action="play",
+                text="在你任何需要的时候，都能通过它，让自己好好的放松",
+                wait_time=2,
+                filename="RELAX_3_8cb4bba8e10dd436d27d6a388e695ea3.mp3"
+            ),
+            VoiceAction(
+                action="play",
+                text="现在继续静静的躺着",
+                wait_time=4,
+                filename="RELAX_3_d9bb62671ebbe43c97a41746df4b3eb5.mp3"
+            ),
+            VoiceAction(
+                action="play",
+                text="感觉周围的声音越来越远",
+                wait_time=4,
+                filename="RELAX_3_b05008d16dea39b2077b2aa30893ca58.mp3"
+            ),
+            VoiceAction(
+                action="play",
+                text="感觉你的睡意，越来越深",
+                wait_time=4,
+                filename="RELAX_3_563a0e727c5f15eb591088f242e09169.mp3"
+            ),
+            VoiceAction(
+                action="play",
+                text="越来越深",
+                wait_time=4,
+                filename="RELAX_3_ab9aaa5587b9741032fe184ec33899f8.mp3"
+            ),
+            VoiceAction(
+                action="play",
+                text="越来越深",
+                wait_time=4,
+                filename="RELAX_3_ab9aaa5587b9741032fe184ec33899f8.mp3"
+            ),
+        ]
+        ),
+        bgm=BgmAction(
+            action=MediaAction.PLAY,
+            filename="xyxh.mp3",
+            volume=25
+        ),
+        light=LightAction(
+            mode=LightMode.GRADIENT,
+            rgb="255, 147, 41"
+        ),
+        fragrance=FragranceAction(
+            status=FragranceStatus.ON,
+            count=1
+        )
+    ),    
+
     StateType.SLEEP_READY: Actions(
         action_feature="",
         voice=VoiceSequence(
             voices=[
                 VoiceAction(
                     action="play",
-                    text="现在，如果你感到放松，甚至已经感觉到困倦，我们可以选择平躺下来",
-                    wait_time=8,
-                    filename="SLEEP_READY_af5dbd5a079133dd483b998db2ea2c73.mp3"
-                ),
-                VoiceAction(
-                    action="play",
-                    text="就在这样安心的，放松的，进入到睡梦中去吧。",
-                    wait_time=8,
-                    filename="SLEEP_READY_88a2a7c12cb7637af4df21ff704ee849.mp3"
+                    text="你做的很好，就在这样安心的，放松的，进入到睡梦中去吧。",
+                    wait_time=0,
+                    filename="SLEEP_READY_9195c6ea096e1398aae674413b2985ab.mp3"
                 )
             ]
         ),
         bgm=BgmAction(
             action=MediaAction.PLAY,
-            filename="hailang_776.mp3",
+            filename="xyxh.mp3",
             volume=25
         ),
         light=LightAction(
@@ -394,7 +611,7 @@ states_dict: Dict[StateType, Actions] = {
         action_feature="",
         bgm=BgmAction(
             action=MediaAction.PLAY,
-            filename="hailang_776.mp3",
+            filename="xyxh.mp3",
             volume=20
         ),
         light=LightAction(
@@ -411,7 +628,7 @@ states_dict: Dict[StateType, Actions] = {
         action_feature="",
         bgm=BgmAction(
             action=MediaAction.PLAY,
-            filename="hailang_776.mp3",
+            filename="xyxh.mp3",
             volume=20
         ),
         light=LightAction(
@@ -441,9 +658,39 @@ states_dict: Dict[StateType, Actions] = {
             voices=[
                 VoiceAction(
                     action="play",
-                    text="请放下手中的事物，让我们继续关注到当下的感受中",
-                    filename="USING_PHONE_5c1692d9968a8340c6156cc36537ab47.mp3"
-                )
+                    text="请放下手中的事物，现在你不需要思考任何问题。",
+                    filename="use_phone_01.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="如果需要接听重要的电话，我们可以先暂停一下。我会在这里等你。",
+                    filename="use_phone_02.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="请将双手自然的垂放在身体两侧，现你不需控制身体做任何动作。",
+                    filename="use_phone_03.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="当你闭上眼睛，才能听见心的声音。",
+                    filename="use_phone_04.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="你知道吗？手机的蓝光会影响睡眠，还会增加雀斑的形成哦。",
+                    filename="use_phone_05.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="亲爱的请放下手机，安心的睡个好觉吧。",
+                    filename="use_phone_06.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="相信我，一次完整的冥想体验可比手机有趣多了。",
+                    filename="use_phone_07.mp3"
+                )               
             ]
         )
     ),
@@ -454,8 +701,33 @@ states_dict: Dict[StateType, Actions] = {
             voices=[
                 VoiceAction(
                     action="play",
-                    text="怎么坐起来了呢？让我们调整一个舒适的姿势重新躺下吧",
-                    filename="SITTING_UP_90ea96bb8643a72940f0b8e4c334fa02.mp3"
+                    text="坐起身是想起有什么事情要做吗？不用着急，慢慢来。我在这里等你",
+                    filename="sitting_up_01.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="坐姿会让腰部肌肉持续紧张，躺下才能更好的放松身体哦。",
+                    filename="sitting_up_02.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="让我们专注当下，重新躺好，慢慢归位回到平和的状态。",
+                    filename="sitting_up_03.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="冥想是一个探索的过程，在过程中你可以随时调整姿势，让自己保持在舒适的状态。等你重新躺下，我们再继续探索。",
+                    filename="sitting_up_04.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="发生了什么让你感到坐卧不安呢？诉说也是很好的放松，我很愿意陪你聊聊天。不想说也没关系，你只需要静静平躺下来，让身体放松。",
+                    filename="sitting_up_05.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="舒适的姿势能够更好的帮助我们放松身心。我会等待你重新平躺下来。",
+                    filename="sitting_up_06.mp3"
                 )
             ]
         )

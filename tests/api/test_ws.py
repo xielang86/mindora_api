@@ -57,8 +57,8 @@ def get_rfc3339_with_timezone():
     return datetime.now(tz).isoformat()
 
 async def run():
-    uri = "ws://114.55.90.104:9001/ws"  
-    await send_sound(uri)
+    uri = "ws://192.168.0.132:9001/ws"  
+    await send_image(uri)
 
 if __name__ == "__main__":
     asyncio.run(run())

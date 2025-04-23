@@ -16,6 +16,8 @@ from aivc.data.db.trace_log import save_trace
 from aivc.data.db.pg_engine import engine
 from sqlmodel import Session
 from aivc.common.task_class import QuestionType
+from aivc.chat.sleep_state import SleepMonitor
+
 
 router = APIRouter()
 
@@ -94,7 +96,10 @@ async def process_request(
                     req_timestamp=req.timestamp
                 )
             )
-            
+
+            # 打断睡眠状态
+            await SleepMonitor().interrupt_sleep(req.conversation_id)
+
             async for resp in voice_chat_ws(req=req, trace_tree=trace_tree):
                 # 是否是最新的请求
                 is_latest, latest_id = await MessageManager().is_latest_message(resp.conversation_id, resp.message_id)

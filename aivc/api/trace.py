@@ -7,6 +7,7 @@ from aivc.data.db.trace_log import TraceLog
 from aivc.data.db.pg_engine import engine
 from enum import Enum
 from zoneinfo import ZoneInfo
+from aivc.config.config import settings,L
 
 router = APIRouter()
 
@@ -53,6 +54,13 @@ class TraceLogRequest(BaseModel):
     conversation_id: Optional[str] = None
     message_id: Optional[str] = None
 
+# 添加新的响应模型
+class AIRPCConfigResponse(BaseModel):
+    server: str
+    mock: bool
+
+# 删除 UpdateMockRequest 类，因为不再需要
+
 def get_time_with_timezone(dt: datetime) -> str:
     return dt.astimezone(ZoneInfo("Asia/Shanghai")).isoformat()
 
@@ -69,13 +77,40 @@ def convert_to_trace_log_response(trace_log: TraceLog) -> TraceLogResponse:
         trace_tree=trace_log.trace_tree or {}  
     )
 
+API_KEY = "gQewyXpQRTG"
+
+@router.get("/config", response_model=AIRPCConfigResponse)
+async def get_ai_rpc_config(key: str):
+    """获取AI RPC配置"""
+    if key != API_KEY:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid API key"
+        )
+    
+    return AIRPCConfigResponse(
+        server=settings.AI_RPC_SERVER,
+        mock=settings.AI_RPC_MOCK
+    )
+
+@router.get("/update_config")
+async def update_config(key: str, mock: bool):
+    if key != API_KEY:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid API key"
+        )
+    
+    settings.AI_RPC_MOCK = mock
+    L.info(f"update_config mock updated to {mock}")
+    return {"success": True, "mock": settings.AI_RPC_MOCK}
+
 @router.post("/", response_model=TraceLogListResponse)
 async def get_traces(request: TraceLogRequest):
     """
     获取追踪日志列表，支持时间范围和多种过滤条件
     """
 
-    API_KEY = "gQewyXpQRTG"  
     if request.key != API_KEY:
         raise HTTPException(
             status_code=401,

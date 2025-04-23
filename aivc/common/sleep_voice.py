@@ -14,6 +14,7 @@ class VoiceManager:
         self.speed_ratio = 0.8
         self.sound_dir = settings.SOUND_DIR
         self.voice_map_file = os.path.join(self.sound_dir, 'voice_map.json')
+        self.sleep_config_file = os.path.join(self.sound_dir, '../../aivc/common/sleep_config.py')
         self.voice_map = {}
         self._ensure_directories()
         self._load_voice_map()
@@ -172,13 +173,71 @@ class VoiceManager:
                     L.debug(f"[不匹配] 状态 {state.name} 文本: '{text}' 映射值: '{mapped_filename}' 与预期: '{expected_filename}' 不一致。")
                 else:
                     pass
- 
+
+    def update_sleep_config_filenames(self):
+        """更新sleep_config.py文件中的filename值，使其与voice_map.json保持一致"""
+        if not os.path.exists(self.sleep_config_file):
+            L.debug(f"配置文件不存在: {self.sleep_config_file}")
+            return
+
+        try:
+            # 读取voice_map
+            with open(self.voice_map_file, 'r', encoding='utf-8') as f:
+                voice_map = json.load(f)
+        except Exception as e:
+            L.debug(f"读取voice_map失败: {e}")
+            return
+
+        try:
+            # 读取所有行
+            with open(self.sleep_config_file, 'r', encoding='utf-8') as f:
+                lines = f.readlines()
+
+            # 处理每一行
+            modified = False
+            for i in range(len(lines)):
+                line = lines[i]
+                if 'text=' in line:
+                    # 提取text值
+                    text_start = line.find('text="') + 6
+                    text_end = line.find('"', text_start)
+                    if text_start > 5 and text_end > text_start:
+                        text = line[text_start:text_end]
+                        
+                        # 在随后的几行中查找filename
+                        for j in range(i, min(i + 3, len(lines))):
+                            if 'filename=' in lines[j]:
+                                # 如果在voice_map中找到对应的文件名
+                                if text in voice_map:
+                                    new_filename = voice_map[text]
+                                    filename_start = lines[j].find('filename="') + 10
+                                    filename_end = lines[j].find('"', filename_start)
+                                    if filename_start > 9 and filename_end > filename_start:
+                                        old_filename = lines[j][filename_start:filename_end]
+                                        if old_filename != new_filename:
+                                            lines[j] = lines[j][:filename_start] + new_filename + lines[j][filename_end:]
+                                            modified = True
+                                            L.debug(f"更新filename: {old_filename} -> {new_filename}")
+                                break
+
+            # 如果有修改，写回文件
+            if modified:
+                with open(self.sleep_config_file, 'w', encoding='utf-8') as f:
+                    f.writelines(lines)
+                L.debug("已更新配置文件中的filename")
+            else:
+                L.debug("没有需要更新的filename")
+
+        except Exception as e:
+            L.debug(f"更新配置文件失败: {e}")
+
 # 创建全局实例
 voice_manager = VoiceManager()
 
 async def main():
     L.debug("开始生成语音文件...")
     await voice_manager.generate_all_voice_files()
+    voice_manager.update_sleep_config_filenames()
     L.debug(f"语音文件生成完成，映射关系已保存到: {voice_manager.voice_map_file}")
     L.debug(f"当前语音映射数量: {len(voice_manager.voice_map)}")
 

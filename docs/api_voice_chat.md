@@ -125,6 +125,7 @@ class Req(BaseModel, Generic[DataT]):
 class VCRespData(BaseModel):
     action: Optional[str] = None
     text: Optional[str] = ""
+    audio_filename: Optional[str] = None
     audio_format: Optional[str] = "pcm"
     sample_rate: Optional[int] = None
     channels: Optional[int] = None

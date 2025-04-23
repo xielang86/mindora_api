@@ -453,6 +453,30 @@
         input:checked + .slider:before {
             transform: translateX(24px);
         }
+
+        /* 新增限制高度及点击展开详情的样式 */
+        .expandable-content {
+            max-height: 100px;
+            overflow: hidden;
+            cursor: pointer;
+            position: relative;
+        }
+        .expandable-content.expanded {
+            max-height: none;
+        }
+        .expandable-content::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            background: linear-gradient(to right, transparent, white);
+            padding: 2px 4px;
+            font-size: 12px;
+            color: var(--primary-color);
+        }
+        .expandable-content.expanded::after {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -484,6 +508,16 @@
                 <div class="form-group">
                     <label>Conversation ID</label>
                     <input type="text" id="conversationId" placeholder="Enter conversation ID">
+                </div>
+                <!-- 修改：将 Method Filter 输入框从文本输入改为下拉选择 -->
+                <div class="form-group">
+                    <label>Method Filter</label>
+                    <select id="methodFilter">
+                        <option value="">--None--</option>
+                        <option value="voice-chat">voice-chat</option>
+                        <option value="text-chat">text-chat</option>
+                        <option value="report-state">report-state</option>
+                    </select>
                 </div>
                 <div class="form-group auto-refresh">
                     <label>Auto Refresh</label>
@@ -582,7 +616,9 @@
                 page_size: PAGE_SIZE,
                 time_range: timeRange,
                 conversation_id: document.getElementById('conversationId').value || undefined,
-                message_id: document.getElementById('messageId').value || undefined
+                message_id: document.getElementById('messageId').value || undefined,
+                // 增加新的过滤条件：Method Filter
+                method: document.getElementById('methodFilter').value || undefined
             };
 
             if (timeRange === 'custom') {
@@ -655,6 +691,7 @@
                             <th style="width: 200px;">Question<div class="resizer"></div></th>
                             <th style="width: 400px;">Answer<div class="resizer"></div></th>
                             <th style="width: 400px;">TTS||AI Rsp<div class="resizer"></div></th>
+                            <th style="width: 400px;">AI Rsp2<div class="resizer"></div></th>
                             <th style="width: 120px;">Category<div class="resizer"></div></th>
                             <th style="width: 120px;">Model<div class="resizer"></div></th>
                             <th style="width: 100px;">ReqTokens<div class="resizer"></div></th>
@@ -673,7 +710,7 @@
                     ).join('\n') : '';
                 
                 // 根据method类型选择不同的单元格内容
-                let questionCell, answerCell, ttsCell;
+                let questionCell, answerCell, ttsCell, ttsCell2;
                 
                 if (tree.root && tree.root.method === "report-state") {
                     // 安全地获取 sleep_req 数据
@@ -693,11 +730,13 @@
                     questionCell = [imageLinks, audioLink].filter(Boolean).join('<br>') || '-';
                     answerCell = tree.sleep_rsp ? JSON.stringify(tree.sleep_rsp, null, 2) : '-';
                     ttsCell = tree.sleep_api_rsp ? JSON.stringify(tree.sleep_api_rsp, null, 2) : '-';
+                    ttsCell2 = tree.sleep_api_rsp_llm ? JSON.stringify(tree.sleep_api_rsp_llm, null, 2) : '-';
                 } else {
                     questionCell = tree.srt && tree.root ? 
                         `<a href="/upload/${tree.root.message_id}" target="_blank">${tree.srt.text || '-'}</a>` : '-';
                     answerCell = tree.llm ? (tree.llm.answer || '-') : '-';
                     ttsCell = ttsRespContent || '-';
+                    ttsCell2 = '-';
                 }
 
                 html += `
@@ -709,9 +748,10 @@
                         <td>${tree.root ? (tree.root.llm_first_cost + 'ms') : '-'}</td>
                         <td>${tree.root ? (tree.root.tts_first_cost + 'ms') : '-'}</td>
                         <td>${tree.root ? tree.root.client_addr : '-'}</td>
-                        <td>${questionCell}</td>
-                        <td class="answer-cell">${answerCell}</td>
-                        <td class="tts-cell">${ttsCell}</td>
+                        <td><div class="expandable-content" onclick="toggleExpand(this)">${questionCell}</div></td>
+                        <td class="answer-cell"><div class="expandable-content" onclick="toggleExpand(this)">${answerCell}</div></td>
+                        <td class="tts-cell"><div class="expandable-content" onclick="toggleExpand(this)">${ttsCell}</div></td>
+                        <td class="tts-cell"><div class="expandable-content" onclick="toggleExpand(this)">${ttsCell2}</div></td>
                         <td>${tree.qpp ? tree.qpp.question_category : '-'}</td>
                         <td>${tree.llm ? tree.llm.model : '-'}</td>
                         <td>${tree.llm ? tree.llm.req_tokens : '-'}</td>
@@ -871,6 +911,17 @@
         window.onunload = function() {
             stopAutoRefresh();
         };
+
+        // 修改切换展开/收起函数：点击某一列时，同一行内其他列自动同步展开或收起
+        function toggleExpand(element) {
+            const tr = element.closest('tr');
+            const expandables = tr.querySelectorAll('.expandable-content');
+            if (element.classList.contains('expanded')) {
+                expandables.forEach(el => el.classList.remove('expanded'));
+            } else {
+                expandables.forEach(el => el.classList.add('expanded'));
+            }
+        }
     </script>
 </body>
 </html>

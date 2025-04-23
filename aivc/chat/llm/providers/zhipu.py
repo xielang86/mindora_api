@@ -107,9 +107,11 @@ class ZhiPuLLM(BaseLLM):
 
     async def async_req(self, messages: List[Dict[str, Any]]) -> LLMRsp:
         start_time = time.time()
-        response = self._client.chat.asyncCompletions.create(
+        response = await asyncio.to_thread(
+            self._client.chat.completions.create,
             model=self._name,
-            messages=messages)
+            messages=messages,
+        )
         
         input_tokens=response.usage.prompt_tokens
         output_tokens=response.usage.completion_tokens

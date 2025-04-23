@@ -4,6 +4,7 @@ from aivc.utils.tools import get_time_str
 from pydantic import BaseModel, Field
 import json
 from typing import Optional
+from aivc.common.chat import ActionParams
 
 class TraceRoot(BaseModel):
     ts: str = Field(default_factory=get_time_str)
@@ -50,6 +51,8 @@ class TraceLLM(BaseModel):
 
 class TraceTTSResp(BaseModel):
     text: Optional[str] = ""
+    audio_filename: Optional[str] = ""
+    action_params: Optional[ActionParams] = None
     audio_file: Optional[str] = ""
     audio_file_size: Optional[int] = 0
     cost: Optional[int] = 0
@@ -71,6 +74,7 @@ class TraceTree(BaseModel):
     sleep_req: dict = {}
     sleep_api_rsp: dict = {}
     sleep_rsp: dict = {}
+    sleep_api_rsp_llm: dict = {}
 
     def __str__(self):
         return json.dumps(self, default=lambda o: o.__dict__, ensure_ascii=False, indent=2)

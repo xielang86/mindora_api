@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 import tiktoken
 from aivc.chat.llm.providers.openai_llm import OpenAILLM
-from typing import Optional, TypeVar, Generic
+from typing import Optional, TypeVar, Generic, Literal
 from enum import Enum
 from sqlmodel import SQLModel, Field
 from sqlalchemy import Index
@@ -56,9 +56,16 @@ class Req(BaseModel, Generic[DataT]):
             data_str = f"images: {image_data_len} audio: {audio_data_len} scene_exec_status: {self.data.scene_exec_status}"
         return f"version: {self.version} method: {self.method} conversation_id: {self.conversation_id} message_id: {self.message_id} token: {self.token} timestamp: {self.timestamp} data: {data_str}"
 
+class ActionParams(BaseModel):
+    device: Literal['volume', 'light', 'fragrance', 'system'] # 核心：操作哪个设备# --- 可选参数，具体含义依赖 device 和哪个字段有值 ---
+    operation: Optional[Literal['brightness','state','color','mode','main','voice','background_sound','music']] = None
+    value: Optional[str] = None # 通用设置值：颜色名, 模式名, 开关状态(ON/OFF), 系统动作(ENTER_SLEEP)
+    
 class VCRespData(BaseModel):
     action: Optional[str] = None
+    action_params: Optional[ActionParams] = None
     text: Optional[str] = None
+    audio_filename: Optional[str] = None
     audio_format: Optional[str] = "pcm"
     sample_rate: Optional[int] = None
     channels: Optional[int] = None
@@ -80,7 +87,7 @@ class Resp(BaseModel, Generic[DataT]):
         data_str = ""
         if isinstance(self.data, VCRespData):
             audio_data_len = len(self.data.audio_data) if self.data.audio_data else 0
-            data_str = f"action:{self.data.action} audio_format:{self.data.audio_format} audio_data len: {audio_data_len} text: {self.data.text} stream_seq: {self.data.stream_seq}"
+            data_str = f"action:{self.data.action}  action_params:{self.data.action_params}  audio_format:{self.data.audio_format} audio_data len: {audio_data_len} text: {self.data.text} audio_filename:{self.data.audio_filename} stream_seq: {self.data.stream_seq}"
         elif isinstance(self.data, ActionRespData):
             data_str = json.dumps(self.data, default=lambda o: o.__dict__, ensure_ascii=False, indent=2)  
             data_str = self.modify_audio_data_in_json(data_str)                            

@@ -1,14 +1,15 @@
 from aivc.chat.llm.manager import LLMType, OpenAILLM, WenxinLLM, QWenLLM, ZhiPuLLM, MoonShotLLM, DeepSeekLLM, OllamaLLM, DouBaoLLM, StepLLM, BaiChuanLLM, GoogleLLM
-from aivc.chat.chat import Chat
+from aivc.chat.chat import Chat, Prompt, ContentType
 from aivc.chat.llm.manager import LLMManager
 import time
 from aivc.config.config import L
 import json
 from aivc.utils.tools import remove_outside_curly_brackets
 import asyncio
-from aivc.common.chat import Prompt
 import traceback
 from aivc.chat.prompt_selector import PromptTemplate
+from aivc.common.sleep_common import PersonStatus
+
 
 def generate_message(question="hello"):
     return Chat().gen_messages(
@@ -101,8 +102,22 @@ def test_llm_bai_chuan(question: str=""):
     test_llm(llm_type=LLMType.BAICHUAN, name=BaiChuanLLM.BAICHUAN4_AIR, question=question)
 
 def test_llm_google(question: str=""):
-    test_llm(llm_type=LLMType.GOOGLE, name=GoogleLLM.GEMINI_2_FLASH, question=question)   
+    test_llm(llm_type=LLMType.GOOGLE, name=GoogleLLM.GEMINI_2_FLASH, question=question)  
+
+def test_llm_image_sync(llm_type=LLMType.ZhiPu, name=ZhiPuLLM.GLM_4V_FlASH, question="", timeout=60):
+    chat_instance = Chat(
+        llm_type=llm_type,
+        model_name=name,
+        timeout=timeout,
+        content_type=ContentType.IMAGE.value
+    )
+    data, cost = asyncio.run(chat_instance.chat_image(question=question,
+                                  file_path="/Users/gaochao/Downloads/device.jpg"))
+    data["cost"] = cost
+    print(f"image sync data:{data}, cost:{cost}")
+    ps = PersonStatus(**data)
+    print(f"ps:{ps}")
 
 if __name__ == "__main__":
-    question = "用中文讲个故事"
-    test_llm_google(question=question)
+    question = PromptTemplate.SLEEP_CHECK_PROMPT
+    test_llm_image_sync(question=question)

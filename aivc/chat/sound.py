@@ -25,6 +25,14 @@ class ActionSound:
                 },
                 text="好的，我看一下"
             ),
+            QuestionType.SLEEP_ASSISTANT.value: SoundInfo(
+                sound_files={
+                    AudioFormat.PCM.value: "sleep_assistant.pcm",
+                    AudioFormat.OGG_OPUS.value: "sleep_assistant.ogg_opus",
+                    AudioFormat.MP3.value: "sleep_assistant.mp3"
+                },
+                text="好的，让我们一起放松身心，准备进入甜美的梦乡"
+            ),
         }
     
     def get_sound_info(self, action, format: str = AudioFormat.PCM.value ) -> SoundInfo:
