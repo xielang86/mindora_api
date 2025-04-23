@@ -52,9 +52,9 @@ class SleepMonitor:
     _instance = None
     _initialized = False
     
+    # 测试60秒
     # 正式300秒
-    # 测试600秒
-    def __init__(self, sleep_threshold: int = 600):
+    def __init__(self, sleep_threshold: int = 60):
         if not self._initialized:
             self._sleep_start_times = {}  # 记录开始计时的时间戳
             self._sleep_states = {}
@@ -132,90 +132,3 @@ class SleepMonitor:
     async def interrupt_sleep(self, conversation_id: str) -> None:
         await self._cancel_sleep_timer(conversation_id)
         L.debug(f"SleepMonitor interrupt_sleep 会话 {conversation_id} 睡眠被中断")
-
-@dataclass
-class AbnormalTimerInfo:
-    last_reported: float  # 上次报告时间戳
-    report_count: int  # 报告次数统计
-
-class AbnormalStateManager:
-    """异常状态静音管理器 - 单例模式"""
-    _instance = None
-    _initialized = False
-    MAX_REPORTS = 2  # 同一状态下最大报告次数
-    
-    def __new__(cls, *args, **kwargs):
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-        return cls._instance
-
-    def __init__(self, mute_duration: int = 60):
-        if not self._initialized:
-            self._lock = asyncio.Lock()
-            self._states = defaultdict(lambda: {"normal_state": None, "timers": {}})
-            self.mute_duration = mute_duration
-            self._initialized = True
-            L.debug(f"AbnormalStateManager初始化: mute_duration={mute_duration}")
-
-    @property
-    def mute_duration(self) -> int:
-        return self._mute_duration
-
-    @mute_duration.setter
-    def mute_duration(self, value: int):
-        self._mute_duration = max(1, value)  # 确保静音时长至少为1秒
-
-    async def update_state(self, conversation_id: str, state: StateType) -> None:
-        if not state or state.is_abnormal():
-            return
-            
-        async with self._lock:
-            conversation_data = self._states[conversation_id]
-            old_state = conversation_data["normal_state"]
-            
-            if old_state != state:
-                L.debug(f"AbnormalStateManager update_state 会话 {conversation_id} 状态从 {old_state} 变为 {state}, 清空异常状态计时器")
-                conversation_data["normal_state"] = state
-                conversation_data["timers"].clear()
-
-    async def should_report_abnormal(self, 
-            conversation_id: str,
-            abnormal_state: StateType) -> bool:
-        if not abnormal_state.is_abnormal():
-            return False
-            
-        async with self._lock:
-            conversation_data = self._states[conversation_id]
-            current_state = conversation_data["normal_state"]
-            
-            # 如果当前状态已经到达或超过SLEEP_READY,不再触发异常
-            if current_state and current_state.order >= StateType.SLEEP_READY.order:
-                return False
-                
-            now = time.time()
-            timers = conversation_data["timers"]
-            
-            # 获取或初始化计时器信息
-            timer_info = timers.get(abnormal_state)
-            if timer_info is None:
-                timer_info = AbnormalTimerInfo(last_reported=0, report_count=0)
-                timers[abnormal_state] = timer_info
-            
-            # 检查报告次数是否已达上限
-            if timer_info.report_count >= self.MAX_REPORTS:
-                L.debug(f"AbnormalStateManager should_report_abnormal 会话 {conversation_id} 异常状态 {abnormal_state} 已达到最大报告次数 {self.MAX_REPORTS}")
-                return False
-            
-            # 如果计时器已过期
-            if now - timer_info.last_reported >= self.mute_duration:
-                timer_info.last_reported = now
-                timer_info.report_count += 1
-                L.debug(f"AbnormalStateManager should_report_abnormal 会话 {conversation_id} 异常状态 {abnormal_state} 可以报告, 上次报告时间: {timer_info.last_reported}, 当前报告次数: {timer_info.report_count}")
-                return True
-                
-            return False
-
-    async def clear_conversation(self, conversation_id: str) -> None:
-        async with self._lock:
-            if conversation_id in self._states:
-                del self._states[conversation_id]

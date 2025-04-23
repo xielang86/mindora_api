@@ -309,6 +309,10 @@ async def llm_response_to_state(response: dict) -> tuple[StateType, str, str]:
             if handActivity == "active_device_use":
                 state = StateType.USING_PHONE
 
+        if person_status and not person_status.personPresent:
+            state = StateType.LEAVING
+
+
     except Exception as e:
         L.error(f"response_to_state error:{e}")  
 

@@ -6,7 +6,8 @@ from aivc.common.chat import Req, ReportReqData, Resp, ActionRespData, VCMethod
 from aivc.common.trace_tree import TraceTree, TraceRoot
 from aivc.common.file import save_upload_file
 from aivc.chat.sleep_dect_rpc import get_state_by_api,determine_state_type,get_actions,get_state_by_llm,llm_response_to_state
-from aivc.chat.sleep_state import StateManager, SleepMonitor, AbnormalStateManager
+from aivc.chat.sleep_state import StateManager, SleepMonitor
+from aivc.chat.sleep_alert_state import AlertStateManager
 from aivc.config.config import  L,settings
 import traceback
 from aivc.common.sleep_config import StateType
@@ -69,32 +70,42 @@ async def handler_robot_report(req_data: typing.Any, client_addr:str) -> typing.
         current_state = get_curren_state(local_state, service_states.api_state, service_states.llm_state)
         L.debug(f"current_state: {current_state} local_state:{local_state} api_state:{service_states.api_state} llm_state:{service_states.llm_state} req.message_id:{req.message_id}")
 
+        alert_level = None
+        actions = None
         if current_state is None:
             L.error("无法获取当前状态")
             return None
         else:
-            if not current_state.is_abnormal():
-                await AbnormalStateManager().update_state(req.conversation_id, current_state)
-            else:
-                # 如果是异常状态,检查是否需要报告
-                if await AbnormalStateManager().should_report_abnormal(req.conversation_id, current_state):
-                    L.debug(f"发现异常状态 {current_state}, 需要报告")
-                else:
-                    current_state = local_state
-                    L.debug(f"发现异常状态 {current_state}, 静默期内不报告 current_state:{current_state}")
-
-        actions = await get_actions(current_state)
-        rsp = Resp[ActionRespData](
-            version="1.0",
-            method=VCMethod.EXECUTE_COMMAND,
-            conversation_id=req.conversation_id,
-            message_id=req.message_id,
-            data=ActionRespData(
-                scene=current_state.name_cn,  
-                scene_seq=current_state.order, 
-                actions=actions
+            alert_level, actions = await AlertStateManager().update_state(req.conversation_id, current_state)
+            L.debug(f"AlertStateManager update_state: {alert_level} actions: {actions} msg_id:{req.message_id}")
+    
+        if alert_level and actions:
+            # 如果触发告警，直接返回告警动作
+            rsp = Resp[ActionRespData](
+                version="1.0",
+                method=VCMethod.EXECUTE_COMMAND,
+                conversation_id=req.conversation_id,
+                message_id=req.message_id,
+                data=ActionRespData(
+                    scene=actions.action_feature,  
+                    scene_seq=0, 
+                    actions=actions
+                )
             )
-        )
+            return rsp
+        else:
+            actions = await get_actions(current_state)
+            rsp = Resp[ActionRespData](
+                version="1.0",
+                method=VCMethod.EXECUTE_COMMAND,
+                conversation_id=req.conversation_id,
+                message_id=req.message_id,
+                data=ActionRespData(
+                    scene=current_state.name_cn,  
+                    scene_seq=current_state.order, 
+                    actions=actions
+                )
+            )
 
         # 创建异步任务处理日志和轨迹，不阻塞主流程
         asyncio.create_task(process_logs_and_traces(

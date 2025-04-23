@@ -49,7 +49,8 @@ states_dict: Dict[StateType, Actions] = {
         fragrance=FragranceAction(
             status=FragranceStatus.ON,
             count=1
-        )
+        ),
+        skip_photo_capture=True
     ),
     
     StateType.POSTURE: Actions(

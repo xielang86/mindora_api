@@ -47,8 +47,8 @@ class ZhiPuLLM(BaseLLM):
             name=GLM_4_FLASHX,
             context_size=128000-2000,
             pricing=PricingInfo(
-            input=1/settings.M,
-            output=1/settings.M
+                input=10/settings.M,
+                output=10/settings.M
             )   
         ),
         GLM_4V_FlASH: ModelInfo(

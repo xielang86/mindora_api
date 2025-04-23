@@ -4,7 +4,7 @@ import asyncio
 async def test_tts(tts_type: TTSType = TTSType.DoubaoLM, compression_rate:int = 1, speed_ratio:float = 0.8):
     tts = TTSManager.create_tts(tts_type=tts_type)
     response = await tts.tts(
-        text = "嗯",
+        text = "现在，让我们继续将注意力带回到呼吸上，感受呼吸带来的平静。",
         audio_format="mp3",
         compression_rate=compression_rate,
         speed_ratio=speed_ratio)

@@ -294,6 +294,7 @@ class DisplayStyle(str, Enum):
 class MediaAction(str, Enum):
     PLAY = "play"
     STOP = "stop"
+    FADE_OUT = "fade_out"
 
 class AudioFormat(str, Enum):
     MP3 = "mp3"
@@ -336,7 +337,7 @@ class VoiceSequence(BaseModel):
     
 class BgmAction(BaseModel):
     action: MediaAction
-    volume: Optional[int] = None  # 0-100
+    volume: Optional[int] = None  # -100 - 100
     audio_data: Optional[str] = None  # base64 encoded
     audio_format: Optional[AudioFormat] = None
     filename: Optional[str] = None  # e.g., "night_rain.mp3"
@@ -357,6 +358,7 @@ class Actions(BaseModel):
     bgm: Optional[BgmAction] = None
     display: Optional[DisplayAction] = None
     action_feature: Optional[str] = None
+    skip_photo_capture: Optional[bool] = False
 
 class ActionRespData(BaseModel):
     scene: str  

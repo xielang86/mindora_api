@@ -534,7 +534,7 @@
             return new Promise((resolve, reject) => {
                 let currentUrl = window.location;
                 let wsProtocol = currentUrl.protocol === 'https:' ? 'wss:' : 'ws:';
-                let wsUrl = `ws://114.55.90.104:9001/ws`;
+                let wsUrl = `ws://192.168.0.132:9001/ws`;
                 socket = new WebSocket(wsUrl);
 
                 // 设置 binaryType 为 'arraybuffer' 以便接收和发送二进制数据
