@@ -120,4 +120,5 @@ def test_llm_image_sync(llm_type=LLMType.ZhiPu, name=ZhiPuLLM.GLM_4V_FlASH, ques
 
 if __name__ == "__main__":
     question = PromptTemplate.SLEEP_CHECK_PROMPT
-    test_llm_image_sync(question=question)
+    question = "你能告诉我你现在的状态吗？"
+    test_llm_google(question=question)

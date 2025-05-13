@@ -343,8 +343,8 @@ class BgmAction(BaseModel):
     filename: Optional[str] = None  # e.g., "night_rain.mp3"
 
 class DisplayAction(BaseModel):
-    display_type: DisplayType
-    action: MediaAction
+    display_type: Optional[DisplayType] = None
+    action: Optional[MediaAction] = None
     content: Optional[str] = None
     style: Optional[DisplayStyle] = None
     video_data: Optional[str] = None  # base64 encoded

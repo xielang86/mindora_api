@@ -1,6 +1,5 @@
 from pydantic import BaseModel
 from typing import Optional
-from enum import Enum
 from aivc.common.chat import ActionParams
 
 class TTSRsp(BaseModel):
@@ -23,19 +22,7 @@ class TTSRsp(BaseModel):
     output_length: int = 0              
     price: float = 0.0                  
     cost: int = 0  
+    duration: Optional[int] = None # Added duration, similar to DoubaoLMTTS
 
     def __str__(self):
-        return f"code: {self.code}, message: {self.message}, text: {self.text}, audio_path: {self.audio_path}, stream_seq:{self.stream_seq}, input_size: {self.input_size}, output_length: {self.output_length}, price: {self.price}, cost: {self.cost}"                  
-
-
-class XunFeiVoice(Enum):
-    """
-    讯飞语音合成（TTS）角色枚举类。
-    """
-    XUXIAOBAO = 'aisbabyxu'    # 讯飞许小宝
-    FANGFANG = 'x4_xiaofang'    # 讯飞芳芳
-    XIAOYAN = 'xiaoyan'        # 讯飞小燕
-    MENGMENGHAPPY = 'x_mengmenghappy'    # 讯飞萌萌-高兴
-
-    def __str__(self):
-        return self.value
+        return f"code: {self.code}, message: {self.message}, text: {self.text}, audio_path: {self.audio_path}, stream_seq:{self.stream_seq}, input_size: {self.input_size}, output_length: {self.output_length}, price: {self.price}, cost: {self.cost}, duration: {self.duration}"

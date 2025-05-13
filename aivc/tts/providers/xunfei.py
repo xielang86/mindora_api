@@ -14,11 +14,23 @@ import asyncio
 import os
 from functools import partial
 from aivc.config.config import L,settings
-from aivc.tts.common import TTSRsp, XunFeiVoice
+from aivc.tts.common import TTSRsp
 from aivc.tts.base import BaseTTS
 from aivc.utils.id import get_filename
+from enum import Enum
 
+class XunFeiVoice(Enum):
+    """
+    讯飞语音合成（TTS）角色枚举类。
+    """
+    XUXIAOBAO = 'aisbabyxu'    # 讯飞许小宝
+    FANGFANG = 'x4_xiaofang'    # 讯飞芳芳
+    XIAOYAN = 'xiaoyan'        # 讯飞小燕
+    MENGMENGHAPPY = 'x_mengmenghappy'    # 讯飞萌萌-高兴
 
+    def __str__(self):
+        return self.value
+    
 class XunFeiTTS(BaseTTS):
     PROVIDER = "xunfei"
 

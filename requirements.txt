@@ -35,8 +35,12 @@ aiofiles
 xdbSearcher
 jieba   
 
-google-generativeai
 elevenlabs
 
 zerorpc
 mediapipe
+
+google-cloud-speech
+azure-cognitiveservices-speech
+google-genai
+google-cloud-texttospeech

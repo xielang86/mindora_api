@@ -94,6 +94,8 @@ async def handler_robot_report(req_data: typing.Any, client_addr:str) -> typing.
             )
             return rsp
         else:
+            # 如果没有告警，使用本地流程
+            current_state = local_state
             actions = await get_actions(current_state)
             rsp = Resp[ActionRespData](
                 version="1.0",

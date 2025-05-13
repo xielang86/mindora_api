@@ -3,7 +3,7 @@ from typing import Dict
 from aivc.common.sleep_common import (
     StateType, Actions, VoiceSequence, VoiceAction,
     BgmAction, MediaAction, LightAction, LightMode,
-    FragranceAction, FragranceStatus
+    FragranceAction, FragranceStatus,DisplayAction
 )
 
 states_dict: Dict[StateType, Actions] = {
@@ -50,7 +50,11 @@ states_dict: Dict[StateType, Actions] = {
             status=FragranceStatus.ON,
             count=1
         ),
-        skip_photo_capture=True
+        skip_photo_capture=True,
+        display=DisplayAction(
+            action=MediaAction.PLAY,
+            filename="starry_sky.mp4"
+        )
     ),
     
     StateType.POSTURE: Actions(
@@ -101,6 +105,10 @@ states_dict: Dict[StateType, Actions] = {
         fragrance=FragranceAction(
             status=FragranceStatus.ON,
             count=1
+        ),
+        display=DisplayAction(
+            action=MediaAction.PLAY,
+            filename="breathing.mp4"
         )
     ),
     
@@ -232,6 +240,10 @@ states_dict: Dict[StateType, Actions] = {
         fragrance=FragranceAction(
             status=FragranceStatus.ON,
             level=5,  # 假设每2分钟喷一次对应level=5
+        ),
+        display=DisplayAction(
+            action=MediaAction.PLAY,
+            filename="jellyfish.mp4"
         )
     ),
     
@@ -314,6 +326,10 @@ states_dict: Dict[StateType, Actions] = {
         fragrance=FragranceAction(
             status=FragranceStatus.ON,
             count=1
+        ),
+        display=DisplayAction(
+            action=MediaAction.PLAY,
+            filename="jellyfish.mp4"
         )
     ),
     
@@ -353,6 +369,10 @@ states_dict: Dict[StateType, Actions] = {
         fragrance=FragranceAction(
             status=FragranceStatus.ON,
             count=1
+        ),
+        display=DisplayAction(
+            action=MediaAction.PLAY,
+            filename="ocean_wave.mp4"
         )
     ),    
 
@@ -578,9 +598,12 @@ states_dict: Dict[StateType, Actions] = {
         fragrance=FragranceAction(
             status=FragranceStatus.ON,
             count=1
+        ),
+        display=DisplayAction(
+            action=MediaAction.PLAY,
+            filename="ocean_wave.mp4"
         )
-    ),    
-
+    ),  
     StateType.SLEEP_READY: Actions(
         action_feature="",
         voice=VoiceSequence(
@@ -605,6 +628,10 @@ states_dict: Dict[StateType, Actions] = {
         fragrance=FragranceAction(
             status=FragranceStatus.ON,
             count=1
+        ),
+        display=DisplayAction(
+            action=MediaAction.PLAY,
+            filename="starry_sky_v1.mp4"
         )
     ),
     
@@ -622,6 +649,10 @@ states_dict: Dict[StateType, Actions] = {
         fragrance=FragranceAction(
             status=FragranceStatus.ON,
             count=1
+        ),
+        display=DisplayAction(
+            action=MediaAction.PLAY,
+            filename="starry_sky_v1.mp4"
         )
     ),
     
@@ -638,6 +669,10 @@ states_dict: Dict[StateType, Actions] = {
         ),
         fragrance=FragranceAction(
             status=FragranceStatus.OFF
+        ),
+        display=DisplayAction(
+            action=MediaAction.PLAY,
+            filename="starry_sky_v1.mp4"
         )
     ),
     

@@ -1,12 +1,16 @@
 from enum import Enum
 from aivc.srt.providers.xunfei import XunFeiSRT
 from aivc.srt.providers.doubao import DoubaoSRT
+from aivc.srt.providers.google import GoogleSRT
+from aivc.srt.providers.microsoft import MicrosoftSRT
 from typing import Type
 from aivc.srt.base import BaseSRT
 
 class SRTType(Enum):
     XUNFEI = XunFeiSRT
     DOUBAO = DoubaoSRT
+    GOOGLE = GoogleSRT
+    MICROSOFT = MicrosoftSRT
 
     @classmethod
     def from_str(cls, value: str) -> 'SRTType':
@@ -24,6 +28,8 @@ class SRTManager:
     SRT_CLASSES: dict[SRTType, Type[BaseSRT]] = {
         SRTType.XUNFEI: XunFeiSRT,
         SRTType.DOUBAO: DoubaoSRT,
+        SRTType.GOOGLE: GoogleSRT,
+        SRTType.MICROSOFT: MicrosoftSRT,
     }
 
     @staticmethod

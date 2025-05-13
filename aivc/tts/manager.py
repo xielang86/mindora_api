@@ -3,6 +3,8 @@ from aivc.tts.providers.xunfei import XunFeiTTS
 from aivc.tts.providers.doubao import DoubaoTTS
 from aivc.tts.providers.doubao_lm import DoubaoLMTTS
 from aivc.tts.providers.elevenlabs import ElevenLabsTTS
+from aivc.tts.providers.google import GoogleTTS  
+from aivc.tts.providers.microsoft import MicrosoftTTS  
 from typing import Type
 from aivc.tts.base import BaseTTS
 
@@ -11,6 +13,8 @@ class TTSType(Enum):
     DOUBAO = DoubaoTTS
     ELEVENLABS = ElevenLabsTTS
     DoubaoLM = DoubaoLMTTS
+    GOOGLE = GoogleTTS          
+    MICROSOFT = MicrosoftTTS    
 
     @classmethod
     def from_str(cls, value: str) -> 'TTSType':
@@ -29,7 +33,9 @@ class TTSManager:
         TTSType.XUNFEI: XunFeiTTS,
         TTSType.DOUBAO: DoubaoTTS,
         TTSType.ELEVENLABS: ElevenLabsTTS,
-        TTSType.DoubaoLM: DoubaoLMTTS
+        TTSType.DoubaoLM: DoubaoLMTTS,
+        TTSType.GOOGLE: GoogleTTS,          
+        TTSType.MICROSOFT: MicrosoftTTS      
     }
 
     @staticmethod

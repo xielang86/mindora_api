@@ -22,6 +22,6 @@ if __name__ == "__main__":
     compression_rate = 10
     speed_ratio = 0.8
     asyncio.run(test_tts(
-        tts_type=TTSType.DoubaoLM,
+        tts_type=TTSType.MICROSOFT,
         compression_rate=compression_rate,
         speed_ratio=speed_ratio))
