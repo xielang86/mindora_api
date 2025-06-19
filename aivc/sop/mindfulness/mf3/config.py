@@ -1,0 +1,419 @@
+import json
+from typing import Dict
+from aivc.sop.mindfulness.mf3.common import Mindfulness3StateType
+from aivc.sop.common.common import (
+    Actions, VoiceSequence, VoiceAction, BgmAction, MediaAction
+)
+
+states_dict: Dict[Mindfulness3StateType, Actions] = {
+    Mindfulness3StateType.PREPARE: Actions(
+        action_feature="",
+        voice=VoiceSequence(
+            voices=[
+                VoiceAction(
+                    action="play",
+                    text="观呼吸的概念,来自于古印度,巴利文的Shamarta,中文译作停止的止",
+                    wait_time=2,
+                    filename="ec98cd375f31930c401f306c28e56dff.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="意思是,将注意力停留集中在一点上",
+                    wait_time=2,
+                    filename="e31a5d7479faa27e64828c21300909b6.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="这一点可以是任何东西，比如声音或者图形",
+                    wait_time=2,
+                    filename="9fdeef384c4bc760b3fc8b7b03d567c3.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="通过这种高度的精神集中,让内心达到清醒和安静的效果",
+                    wait_time=2,
+                    filename="78cc4250a66fae7e16febf19dffc24a9.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="之所以选择用呼吸,作为专注的锚点,主要有两个原因,第一,呼吸不需要借助外力,时时刻刻,都能成为供我们参考的工具",
+                    wait_time=2,
+                    filename="5ad506cdd93dee1f06e1e8027c75a556.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="第二呼吸就像一面镜子,反映着我们的身心状态,比如当你情绪激动时,会感到呼吸变得急促,甚至无意识的憋气,而当你放松时,呼吸会显得均匀顺畅",
+                    wait_time=2,
+                    filename="f2d01b991032edf202fd706e7c70ced9.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="呼吸的这种变化无常,也正是心智最好的映射",
+                    wait_time=2,
+                    filename="485de39ce92ad9a21c23914b2980d910.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="在上一堂课中,我们已经体验过观呼吸",
+                    wait_time=2,
+                    filename="95aa36140b8630d906dd87e7859c8c61.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="今天再让我们再进一步,试着把专注点再缩小一些,只关注流经鼻孔下方,也就是人中部位的呼吸感受",
+                    wait_time=2,
+                    filename="0f58c67761da8389a38ef9f18255ae68.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="有一则守门人的比喻,讲的是城堡的守门人,不会去注意已经走入城内,或者已经离开城门外的人,只会检查,正在通过城门的行人",
+                    wait_time=2,
+                    filename="8b781d9ab1eba516bacc856ea969da05.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="在接下来的练习中,我想请你把人中部位,想象成城堡守门人所要看守的城门,不需要跟随已经进入体内,或已经排出体外的气体,只专注于呼吸,在人中处所留下的感受,这种像手电筒一样,聚焦而精准的专注力,就是我们希望练习,和培养的方向",
+                    wait_time=8,
+                    filename="14be95578398771928441056bd3784ad.mp3"
+                )
+            ]
+        ),        
+        bgm=BgmAction(
+            action=MediaAction.PLAY,
+            filename="须臾.mp3",
+            volume=50
+        ),
+    ),
+    
+    Mindfulness3StateType.MEDITATION1: Actions(
+        action_feature="",
+        voice=VoiceSequence(
+            voices=[
+                VoiceAction(
+                    action="play",
+                    text="欢迎来到潮汐,正面入门第3天的课程",
+                    wait_time=2,
+                    filename="38afa3832ff39f4ff5b9730846b61e8d.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="请选择任何适合你的坐姿,然后慢慢的闭上双眼",
+                    wait_time=2,
+                    filename="93574e6aff349ae3c5ccac779dd0443f.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="想象你的头顶中央,有一根看不见的线",
+                    wait_time=2,
+                    filename="8fb1adae6c3ebb0a0d64f8d4a15bdab4.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="把你的身体,轻轻拉向天空的方向,让脊柱保持自然的弧线,并毫不费力的向上空延展",
+                    wait_time=2,
+                    filename="0bb9fda74182218752c4ff422995b8d4.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="下颌微收,放松面部表情",
+                    wait_time=2,
+                    filename="0be65f1b496d02e050a0658d4cb62793.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="照例先做3个深呼吸,用鼻子深深的吸气",
+                    wait_time=3,
+                    filename="daa7553117a475b79fa1048e8a1d6646.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="再用鼻子慢慢的呼气",
+                    wait_time=4.5,
+                    filename="a72264a532646f317d876d5bd733bd5b.mp3"
+                )
+            ]
+        )
+    ),
+    
+    Mindfulness3StateType.MEDITATION2: Actions(
+        action_feature="",
+        voice=VoiceSequence(
+            voices=[
+                VoiceAction(
+                    action="play",
+                    text="深吸气，感受身体膨胀扩展",
+                    wait_time=2,
+                    filename="e3ffd6a70d4dfca0334d94af9c5703b3.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="柔和的呼气,让腹部微微内收，把此刻你不需要的东西,都排出体外",
+                    wait_time=2,
+                    filename="eec1d49e50a79b7626f646ae2c0f3670.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="再做最后一次",
+                    wait_time=3.5,
+                    filename="a01f2fbd62a5113fdba4ae9ba3a54561.mp3"
+                )
+            ]
+        )
+    ),
+    
+    Mindfulness3StateType.MEDITATION3: Actions(
+        action_feature="",
+        voice=VoiceSequence(
+            voices=[
+                VoiceAction(
+                    action="play",
+                    text="放松肩膀",
+                    wait_time=2,
+                    filename="d907f68ab46dfc2d7f31def76c38d322.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="放松后背",
+                    wait_time=3.5,
+                    filename="19081519aed6f96e0b15a8e37c8ba6fa.mp3"
+                )
+            ]
+        )
+    ),
+    
+    Mindfulness3StateType.MEDITATION4: Actions(
+        action_feature="",
+        voice=VoiceSequence(
+            voices=[
+                VoiceAction(
+                    action="play",
+                    text="很好,现在请让注意力来到你的鼻子与嘴唇之间的区域,也就是人中的位置",
+                    wait_time=2,
+                    filename="78e2b489ec4e7cc90281971688da5fdb.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="观察呼吸时,你的气息是如何经过这里流进流出的",
+                    wait_time=4,
+                    filename="c75a295621a12dcd13b6fd6bcb374b6d.mp3"
+                )
+            ]
+        )
+    ),
+    
+    Mindfulness3StateType.MEDITATION5: Actions(
+        action_feature="",
+        voice=VoiceSequence(
+            voices=[
+                VoiceAction(
+                    action="play",
+                    text="注意你的气息是轻柔的,还是沉重的",
+                    wait_time=3,
+                    filename="7b2506fd8b78051ffed7058b394090ba.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="是快的还是慢的",
+                    wait_time=5,
+                    filename="2bf2d4a59bff962a84b8d0dd88916f14.mp3"
+                )
+            ]
+        )
+    ),
+    
+    Mindfulness3StateType.MEDITATION6: Actions(
+        action_feature="",
+        voice=VoiceSequence(
+            voices=[
+                VoiceAction(
+                    action="play",
+                    text="知道呼吸没有对或错,不用控制它,让它自然的发生",
+                    wait_time=7,
+                    filename="5887d205c11f5b37064917e6afb0492a.mp3"
+                )
+            ]
+        )
+    ),
+    
+    Mindfulness3StateType.MEDITATION7: Actions(
+        action_feature="",
+        voice=VoiceSequence(
+            voices=[
+                VoiceAction(
+                    action="play",
+                    text="留意吸气时浸过人中的气息,微微凉爽",
+                    wait_time=2,
+                    filename="593597b293259ed0a4c8233830d38812.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="呼气时温暖湿润",
+                    wait_time=7,
+                    filename="3662ec88fd136b1a87e5eaf3829f7cf5.mp3"
+                )
+            ]
+        )
+    ),
+    
+    Mindfulness3StateType.MEDITATION8: Actions(
+        action_feature="",
+        voice=VoiceSequence(
+            voices=[
+                VoiceAction(
+                    action="play",
+                    text="也许你觉得自己的气息并不明显,这没有关系,你只是还没有习惯,这样安静的去观察,请不必刻意的加重呼吸,只需要简单的,把注意力维持在人中处,并知道自己此刻正在呼吸,就好了",
+                    wait_time=18,
+                    filename="f4f49d3525ccca0f47ae647f0fa644bb.mp3"
+                )
+            ]
+        )
+    ),
+    
+    Mindfulness3StateType.MEDITATION9: Actions(
+        action_feature="",
+        voice=VoiceSequence(
+            voices=[
+                VoiceAction(
+                    action="play",
+                    text="请试着,跟随每次呼吸的完整过程,从头到尾的观察,气息是如何经过人中处的",
+                    wait_time=4,
+                    filename="c6e526aac501081351c3f102ba33e504.mp3"
+                )
+            ]
+        )
+    ),
+    
+    Mindfulness3StateType.MEDITATION10: Actions(
+        action_feature="",
+        voice=VoiceSequence(
+            voices=[
+                VoiceAction(
+                    action="play",
+                    text="跟随每一次吸气的开始,过程，结束",
+                    wait_time=2,
+                    filename="5572a393e467e8db84bcd491ebcf2f96.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="再跟随每一次呼气的开始,直到它完全结束",
+                    wait_time=2,
+                    filename="1cb47e504d9165910084bd21c9260bd4.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="也留意每次吸气与呼气之间,短暂的停留",
+                    wait_time=23,
+                    filename="9bc61be17f05228b4afba9a82e100bac.mp3"
+                )
+            ]
+        )
+    ),
+    
+    Mindfulness3StateType.MEDITATION11: Actions(
+        action_feature="",
+        voice=VoiceSequence(
+            voices=[
+                VoiceAction(
+                    action="play",
+                    text="如果你发现自己走神了,请不必自责,也不用理会走神的内容,只需要简单的,把注意力再拉回来,放到人中处的呼吸,感受上就好",
+                    wait_time=24,
+                    filename="f2114f55bdc936706592bd9977b1272f.mp3"
+                )
+            ]
+        )
+    ),
+    
+    Mindfulness3StateType.MEDITATION12: Actions(
+        action_feature="",
+        voice=VoiceSequence(
+            voices=[
+                VoiceAction(
+                    action="play",
+                    text="请记住,你的人中,就是此刻心智守门人,所要看守的城门,我们不必在意,已经进入或离开城门的空气,只需专注于此时此刻,正在经过人中处的气息",
+                    wait_time=3,
+                    filename="8912aca79e75e55b702aa7dedba29794.mp3"
+                )
+            ]
+        )
+    ),
+    
+    Mindfulness3StateType.MEDITATION13: Actions(
+        action_feature="",
+        voice=VoiceSequence(
+            voices=[
+                VoiceAction(
+                    action="play",
+                    text="随着练习的深入，我们会更加擅长,这种细微的观察方式,而保持练习的习惯,觉知力会自然的生长,你也可以在心中跟着呼吸,默念吸气呼气,来稳固注意力",
+                    wait_time=42,
+                    filename="5829c1d3bb69495ef14669201b87451a.mp3"
+                )
+            ]
+        )
+    ),
+    
+    Mindfulness3StateType.MEDITATION14: Actions(
+        action_feature="",
+        voice=VoiceSequence(
+            voices=[
+                VoiceAction(
+                    action="play",
+                    text="在最后的1分钟内,请你放下呼吸关注,让身心在这里彻底的放松,放空",
+                    wait_time=48,
+                    filename="fa66ad810b2324c71f59baa1c275634b.mp3"
+                )
+            ]
+        )
+    ),
+    
+    Mindfulness3StateType.MEDITATION15: Actions(
+        action_feature="",
+        voice=VoiceSequence(
+            voices=[
+                VoiceAction(
+                    action="play",
+                    text="好的,恭喜你,完成了第3节正念练习课",
+                    wait_time=2,
+                    filename="8aceb2dd7cf77e97b1761e2d3b663d13.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="我想请你评估一下,今天练习之后的感觉,无论你是感到疲惫烦躁,或者安静舒适,这些都不是重点",
+                    wait_time=2,
+                    filename="30a006eceefc760519191756053a3179.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="今天练习的重点是,在你当呼吸守门人的过程中,是否发现了自己,能够更加专注",
+                    wait_time=2,
+                    filename="64132c7f9502e45e62525ad7bfce2cb3.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="我们如何使用注意力,在很大程度上,将决定,自己成为一个什么样的人",
+                    wait_time=2,
+                    filename="89466a44043e1183aa3790278e36411f.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="你我正是通过使用心智,而塑造着心智本身,这也正是练习正念的内涵,去获得对心智的控制力,而这种控制力越敏锐,越细微,它的效用就越大",
+                    wait_time=2,
+                    filename="c833532d12a413b06fed6ee2fa52beb3.mp3"
+                )
+            ]
+        )
+    ),
+    
+    Mindfulness3StateType.END: Actions(
+        action_feature="",
+        voice=VoiceSequence(
+            voices=[
+                VoiceAction(
+                    action="play",
+                    text="请慢慢的睁开双眼,我在第4天的课程中等你",
+                    wait_time=2,
+                    filename="4c1c13ea119470039f0b847408db8ad1.mp3"
+                )
+            ]
+        )
+    )
+}

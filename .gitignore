@@ -5,3 +5,7 @@ output/*
 upload/*
 models/*
 .DS_Store
+data/recv/*
+data/send/*
+data/sleep_assistant/*
+assets/*

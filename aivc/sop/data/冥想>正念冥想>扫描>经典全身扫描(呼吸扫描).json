@@ -1,0 +1,317 @@
+{
+  "准备": {
+    "voice": {
+      "voices": [
+        {
+          "action": "play",
+          "text": [
+            "“正念是一套规则,能够帮助我们,接触心智的本质,激发生命潜力”",
+            "“这将是一段有趣的,也许改变你人生的旅程”",
+            "“而你所需要做的,仅仅是,找到一个不被打扰的地方,闭上眼睛,然后让内心一点点打开”"
+          ],
+          "text_interval": 2.0,
+          "wait_time": 2.0,
+          "repeat": null
+        }
+      ],
+      "repeat": null
+    },
+    "bgm": {
+      "filename": "冥想"
+    },
+    "fragrance": null,
+    "light": null,
+    "display": null
+  },
+  "冥想1": {
+    "voice": {
+      "voices": [
+        {
+          "action": "play",
+          "text": [
+            "“我们的任务非常简单”",
+            "“就是找到适合你的静坐姿势,然后和自己安静的独处一会儿”",
+            "“你可以选择简易的盘腿坐姿,或者坐在一把舒适的椅子上”",
+            "”如果你是坐在椅子上的,那么请检查你的双脚,能否扎实的踩在地面”",
+            "“让腹部微微的内收,稍微用上一点力气,因为当我们收腹时,身体自然会做的挺拔一些”",
+            "“请将掌心向上,安放在膝头或大腿前侧“",
+            "”让双臂自然下垂”",
+            "“想象你的手肘,变得微微沉重一点”",
+            "“放松肩膀“",
+            "”让下颌微收”",
+            "“当你准备好以后,可以轻轻的闭上双眼”",
+            "“让我们一起,先来做3个深呼吸”",
+            "“深呼吸，是开始冥想练习的好习惯”",
+            "“请从鼻腔慢慢的吸气,再用鼻子缓缓的呼气”",
+            "“均匀深长的吸气打开胸腔，呼气时用腹部微微内收”",
+            "“把所有的气体都排出体外”",
+            "“再做最后一次”"
+          ],
+          "text_interval": 1.8,
+          "wait_time": 4.0,
+          "repeat": null
+        }
+      ],
+      "repeat": null
+    },
+    "bgm": {
+      "filename": "冥想"
+    },
+    "fragrance": null,
+    "light": null,
+    "display": null
+  },
+  "冥想2": {
+    "voice": {
+      "voices": [
+        {
+          "action": "play",
+          "text": [
+            "”放松你的双眉，双眉之间的肌肉”",
+            "“放松双眼”",
+            "“放松咬合关节”",
+            "“允许你的两排牙齿微微的张开一点,大约可以容纳一粒米通过的距离”",
+            "“允许整个面部表情再柔和一些”",
+            "“现在，请让注意力,来到盆骨与座椅的接触面上”",
+            "“感受身体的重量和重心,让注意力来到双脚与大地的接触面”",
+            "“感受大地所给予你的支持”"
+          ],
+          "text_interval": 2.0,
+          "wait_time": 4.0,
+          "repeat": null
+        }
+      ],
+      "repeat": null
+    },
+    "bgm": {
+      "filename": "冥想"
+    },
+    "fragrance": null,
+    "light": null,
+    "display": null
+  },
+  "冥想3": {
+    "voice": {
+      "voices": [
+        {
+          "action": "play",
+          "text": [
+            "“在接下来的练习中,请尽量的保持身体静止”",
+            "“如果需要,也可以简单的调整坐姿,但请你密切关注,身体活动所带来的感受”",
+            "“现在我想请你把注意力逐渐的放到呼吸上”",
+            "“注意空气，是如何经过你的鼻腔流入身体，又是如何经过鼻腔而流出的”"
+          ],
+          "text_interval": 2.0,
+          "wait_time": 5.5,
+          "repeat": null
+        }
+      ],
+      "repeat": null
+    },
+    "bgm": {
+      "filename": "冥想"
+    },
+    "fragrance": null,
+    "light": null,
+    "display": null
+  },
+  "冥想4": {
+    "voice": {
+      "voices": [
+        {
+          "action": "play",
+          "text": [
+            "“注意吸气时,你鼻腔感到微微凉爽,呼气温暖、湿润”",
+            "“注意吸气和呼气之间,那短暂的暂停”",
+            "“请既不用改变,也无需去控制呼吸,只是简单的跟随每一次呼吸的自然节奏”"
+          ],
+          "text_interval": 5.0,
+          "wait_time": 14.0,
+          "repeat": null
+        }
+      ],
+      "repeat": null
+    },
+    "bgm": {
+      "filename": "冥想"
+    },
+    "fragrance": null,
+    "light": null,
+    "display": null
+  },
+  "冥想5": {
+    "voice": {
+      "voices": [
+        {
+          "action": "play",
+          "text": [
+            "“吸气时想象你的脊柱,向天空的方向延展”",
+            "“从脊柱的最底端开始,随着每一次吸气,一节一节的向上生长”",
+            "“从腰椎”",
+            "“胸椎”",
+            "“颈椎”",
+            "“一路向上延伸到头顶”",
+            "“让注意力停留在头顶片刻,去感受你的头顶变得越来越柔软,越来越开放”"
+          ],
+          "text_interval": 2.0,
+          "wait_time": 6.0,
+          "repeat": null
+        }
+      ],
+      "repeat": null
+    },
+    "bgm": {
+      "filename": "冥想"
+    },
+    "fragrance": null,
+    "light": null,
+    "display": null
+  },
+  "冥想6": {
+    "voice": {
+      "voices": [
+        {
+          "action": "play",
+          "text": [
+            "“现在随着每次呼气,让身体更加的放松”",
+            "“再一次从头顶向下,顺着脊柱逐步的放松身体”",
+            "“放松面部”",
+            "“放松脖颈”",
+            "“放松双肩”",
+            "“双臂”",
+            "“呼气”",
+            "“放松胸腔”",
+            "“放松腹部”",
+            "“放松你的双腿,双脚”"
+          ],
+          "text_interval": 2.0,
+          "wait_time": 4.0,
+          "repeat": null
+        }
+      ],
+      "repeat": null
+    },
+    "bgm": {
+      "filename": "冥想"
+    },
+    "fragrance": null,
+    "light": null,
+    "display": null
+  },
+  "冥想7": {
+    "voice": {
+      "voices": [
+        {
+          "action": "play",
+          "text": [
+            "“如果你在身体中,发现任何紧绷的部位，请有意识的用呼气去放松那里”"
+          ],
+          "text_interval": null,
+          "wait_time": 9.0,
+          "repeat": null
+        }
+      ],
+      "repeat": null
+    },
+    "bgm": {
+      "filename": "冥想"
+    },
+    "fragrance": null,
+    "light": null,
+    "display": null
+  },
+  "冥想8": {
+    "voice": {
+      "voices": [
+        {
+          "action": "play",
+          "text": [
+            "“现在请感受你的整个身体”",
+            "“感受此刻你的坐姿中,所蕴含的庄严与稳定感”"
+          ],
+          "text_interval": 2.0,
+          "wait_time": 8.0,
+          "repeat": null
+        }
+      ],
+      "repeat": null
+    },
+    "bgm": {
+      "filename": "冥想"
+    },
+    "fragrance": null,
+    "light": null,
+    "display": null
+  },
+  "冥想9": {
+    "voice": {
+      "voices": [
+        {
+          "action": "play",
+          "text": [
+            "“我希望你能将最后一分钟看作完全只属于你个人的空间”",
+            "“安静的,和你内心里的庄严感相伴”"
+          ],
+          "text_interval": 2.0,
+          "wait_time": 44.0,
+          "repeat": null
+        }
+      ],
+      "repeat": null
+    },
+    "bgm": {
+      "filename": "冥想"
+    },
+    "fragrance": null,
+    "light": null,
+    "display": null
+  },
+  "冥想10": {
+    "voice": {
+      "voices": [
+        {
+          "action": "play",
+          "text": [
+            "“很好,恭喜你完成了课程”",
+            "“也许你发现了，只是刚刚这短短几分钟的练习,就对你产生了显著的影响,让你更加的清醒和放松”",
+            "“在刚才的练习中,我们训练身体保持一种挺拔稳定的坐姿,并体验由内向外的尊严感,之后,我们使用均匀而悠长的呼吸节奏把心智安放到当下,在其中放松”",
+            "“我希望你在练习以外的时间,也能记得不断提醒自己,保持自信而挺拔的姿态,随时回到悠长稳定的呼吸中”"
+          ],
+          "text_interval": 2.0,
+          "wait_time": 4.5,
+          "repeat": null
+        }
+      ],
+      "repeat": null
+    },
+    "bgm": {
+      "filename": "冥想"
+    },
+    "fragrance": null,
+    "light": null,
+    "display": null
+  },
+  "结束": {
+    "voice": {
+      "voices": [
+        {
+          "action": "play",
+          "text": [
+            "“当你准备好后,请慢慢的睁开双眼”",
+            "“我们下次再见”"
+          ],
+          "text_interval": 2.0,
+          "wait_time": null,
+          "repeat": null
+        }
+      ],
+      "repeat": null
+    },
+    "bgm": {
+      "filename": "冥想"
+    },
+    "fragrance": null,
+    "light": null,
+    "display": null
+  }
+}

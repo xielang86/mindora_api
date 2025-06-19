@@ -1,0 +1,71 @@
+{
+  "流程1": {
+    "voice": {
+      "voices": [
+        {
+          "action": "play",
+          "volume": null,
+          "audio_data": null,
+          "audio_format": null,
+          "filename": "PREPARE_0a5d18b7ccc364d4a6878642e3cd4875.mp3",
+          "wait_time": 1.5,
+          "repeat": null,
+          "text": "在开始冥想前，请先找到一个不易被打扰的地方，选择一个让你感到舒适的姿势。"
+        }
+      ],
+      "repeat": null
+    },
+    "bgm": {
+      "action": "play",
+      "volume": 50,
+      "audio_data": null,
+      "audio_format": null,
+      "filename": "bo_asmr.mp3"
+    },
+    "fragrance": {
+      "status": "on",
+      "level": null,
+      "count": 1
+    },
+    "light": {
+      "mode": "Static",
+      "rgb": "255, 147, 41"
+    },
+    "display": null
+  },
+  "流程2": {
+    "voice": {
+      "voices": [
+        {
+          "action": "play",
+          "volume": null,
+          "audio_data": null,
+          "audio_format": null,
+          "filename": "POSTURE_e444af1a781082ba399ff9eaebb507eb.mp3",
+          "wait_time": 3.0,
+          "repeat": null,
+          "text": "此刻你的身体正被椅子和下方的大地稳稳的承托着"
+        }
+      ],
+      "repeat": null
+    },
+    "fragrance": {
+      "status": "on",
+      "level": null,
+      "count": 1
+    },
+    "light": {
+      "mode": "Static",
+      "rgb": "255, 147, 41"
+    },
+    "bgm": {
+      "action": "play",
+      "volume": 45,
+      "audio_data": null,
+      "audio_format": null,
+      "filename": "bo_1036.mp3"
+    },
+    "display": null,
+    "action_feature": ""
+  }
+}

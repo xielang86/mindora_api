@@ -399,12 +399,12 @@
         recordButton.addEventListener('mouseleave', stopRecording);
 
         // Spacebar event listeners
-        document.addEventListener('keydown', (event) => {
-            if (event.code === 'Space' && !isRecording) {
-                event.preventDefault(); // Prevent scrolling
-                startRecording();
-            }
-        });
+        // document.addEventListener('keydown', (event) => {
+        //     if (event.code === 'Space' && !isRecording) {
+        //         event.preventDefault(); // Prevent scrolling
+        //         startRecording();
+        //     }
+        // });
 
         document.addEventListener('keyup', (event) => {
             if (event.code === 'Space') {
@@ -534,7 +534,7 @@
             return new Promise((resolve, reject) => {
                 let currentUrl = window.location;
                 let wsProtocol = currentUrl.protocol === 'https:' ? 'wss:' : 'ws:';
-                let wsUrl = `ws://192.168.0.132:9001/ws`;
+                let wsUrl = `ws://192.168.0.221:9001/ws`;
                 socket = new WebSocket(wsUrl);
 
                 // 设置 binaryType 为 'arraybuffer' 以便接收和发送二进制数据
@@ -912,7 +912,7 @@ function cleanupAudio() {
             if (socket && socket.readyState === WebSocket.OPEN) {
                 socket.send(JSON.stringify({
                     version: "1.0",
-                    method: "voice-chat",
+                    method: "text-chat",
                     conversation_id: conversation_id,
                     message_id: getMessageId(),
                     token: getMessageId(),

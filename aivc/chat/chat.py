@@ -5,6 +5,8 @@ from aivc.common.trace_tree import TraceTree
 from aivc.text.parse import gen_text
 # from aivc.chat.llm.providers.deepseek import DeepSeekLLM
 from aivc.chat.llm.providers.zhipu import ZhiPuLLM
+from aivc.chat.llm.providers.llama import LlamaLLM
+from aivc.chat.llm.providers.rknn import RKNLLM
 # from aivc.chat.llm.providers.step import StepLLM
 # from aivc.chat.llm.providers.doubao import DouBaoLLM
 # from aivc.chat.llm.providers.moonshot import MoonShotLLM
@@ -29,9 +31,9 @@ class Chat():
     def __init__(self, 
                 # llm_type:LLMType=LLMType.DEEPSEEK,
                 # model_name:str=DeepSeekLLM.DEEPSEEK_CHAT,
-                llm_type:LLMType=LLMType.ZhiPu,
-                model_name:str=ZhiPuLLM.GLM_4_FLASHX,                
-                timeout:int=60,
+                llm_type:LLMType=LLMType.RKNN,
+                model_name:str=RKNLLM.QWEN_25_15B,
+                timeout:int=6,
                 prompt_style:str="thorough",
                 content_type:str=ContentType.AUDIO.value):
         self.llm_type = llm_type
@@ -57,10 +59,11 @@ class Chat():
         messages = []
         L.debug(f"gen_messages conversation_id:{conversation_id}")
         if conversation_id:
-            messages = await asyncio.to_thread(
-                conversation.get_conversation_history,
-                conversation_id=conversation_id
-            )
+            # 获取对话历史 暂时注释掉
+            # messages = await asyncio.to_thread(
+            #     conversation.get_conversation_history,
+            #     conversation_id=conversation_id
+            # )
             L.debug(f"gen_messages conversation_id:{conversation_id} query messages:{messages}")
             
         if len(prompt.system.strip()) > 0:
@@ -154,7 +157,7 @@ class Chat():
         if model_name != self.model_name:
             self.llm = LLMManager.create_llm(self.llm_type, model_name, self.timeout)
             L.debug(f"chat_stream select_model_by_length trace_sn:{trace_tree.root.message_id} messages len:{len(messages)} prompt_tokens_local:{prompt_tokens_local} change model:{self.model_name}->{model_name}")
-        L.debug(f"chat_stream start! trace_sn:{trace_tree.root.message_id} messages:{json.dumps(messages, indent=2, ensure_ascii=False)} prompt_tokens_local:{prompt_tokens_local} model_name:{model_name}")
+        L.debug(f"chat_stream start! trace_sn:{trace_tree.root.message_id} messages:{json.dumps(messages, indent=2, ensure_ascii=False)} prompt_tokens_local:{prompt_tokens_local} model_name:{model_name} timeout:{self.timeout}")
 
         i = 0
         answer = ""

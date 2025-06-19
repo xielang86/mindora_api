@@ -7,7 +7,7 @@ from sqlmodel import SQLModel, Field
 from sqlalchemy import Index
 from datetime import datetime
 import json
-from aivc.common.sleep_common import ReportReqData,ActionRespData
+from aivc.sop.common.common import ReportReqData,ActionRespData
 
 class VCMethod(str, Enum):
     VOICE_CHAT = "voice-chat"
@@ -16,11 +16,16 @@ class VCMethod(str, Enum):
     PONG = "pong"
     REPORT_STATE = "report-state"
     EXECUTE_COMMAND = "execute-command"
+    COMMAND = "command"
 
 class ContentType(str, Enum):
     AUDIO = "audio"
     IMAGE = "image"
     TEXT = "text"
+
+class Params(BaseModel):
+    date: Optional[str] = None  # 具体日期 "2023-05-15"
+    time: Optional[str] = None  # 24小时制时间 "14:00"
 
 class ConverMsg(BaseModel):
     method: str 
@@ -57,9 +62,11 @@ class Req(BaseModel, Generic[DataT]):
         return f"version: {self.version} method: {self.method} conversation_id: {self.conversation_id} message_id: {self.message_id} token: {self.token} timestamp: {self.timestamp} data: {data_str}"
 
 class ActionParams(BaseModel):
-    device: Literal['volume', 'light', 'fragrance', 'system'] # 核心：操作哪个设备# --- 可选参数，具体含义依赖 device 和哪个字段有值 ---
-    operation: Optional[Literal['brightness','state','color','mode','main','voice','background_sound','music']] = None
-    value: Optional[str] = None # 通用设置值：颜色名, 模式名, 开关状态(ON/OFF), 系统动作(ENTER_SLEEP)
+    """设备操作参数类，用于表示对特定设备的操作动作"""
+    device: Literal['volume', 'light', 'fragrance', 'system', 'camera', 'microphone', 'screen', 'meditation', 'sleep_assistant', 'music', 'alarm']  # 操作目标设备
+    operation: Optional[Literal['brightness','state','color','mode','main','voice','background_sound','music','intensity']] = None  # 执行的动作类型
+    value: Optional[str] = None  # 动作设置值：如颜色名称、模式名称、开关状态、系统指令等
+    params: Optional[Params] = None  # 额外参数，如闹钟时间等 
     
 class VCRespData(BaseModel):
     action: Optional[str] = None

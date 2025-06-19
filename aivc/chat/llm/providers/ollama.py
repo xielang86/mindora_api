@@ -88,16 +88,16 @@ class OllamaLLM(BaseLLM):
         if cls.model is None or cls.tokenizer is None:
             try:
                 cls.model = AutoModelForCausalLM.from_pretrained(
-                    cls.MODELS[cls.QWEN_1_5].local_path,
+                    cls.MODELS[cls.QWEN_25_05B].local_path,  # 修复错误的模型引用
                     torch_dtype="auto",
                     device_map="auto"
                 )
                 cls.tokenizer = AutoTokenizer.from_pretrained(
-                    cls.MODELS[cls.QWEN_1_5].local_path
+                    cls.MODELS[cls.QWEN_25_05B].local_path  # 修复错误的模型引用
                 )
-                L.info(f"Model: {cls.QWEN_1_5} loaded")
+                L.info(f"Model: {cls.QWEN_25_05B} loaded")
             except Exception as e:
-                L.error(f"Failed to load model: {cls.QWEN_1_5} error:{str(e)}")
+                L.error(f"Failed to load model: {cls.QWEN_25_05B} error:{str(e)}")
 
     def req(self, messages: List[Dict[str, Any]]) -> LLMRsp:
         start_time = time.time()

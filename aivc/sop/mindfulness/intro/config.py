@@ -1,0 +1,173 @@
+import json
+from typing import Dict
+from aivc.sop.mindfulness.intro.common import MindfulnessIntroStateType
+from aivc.sop.common.common import (
+    Actions, VoiceSequence, VoiceAction,
+)
+
+states_dict: Dict[MindfulnessIntroStateType, Actions] = {
+    MindfulnessIntroStateType.MINDFULNESS_INTRO_SPEECH_1: Actions(
+        action_feature="",
+        voice=VoiceSequence(
+            voices=[
+                VoiceAction(
+                    action="play",
+                    text="欢迎来到正念入门系列。",
+                    wait_time=1.5,
+                    filename="dcdff8bc2c4f3fd30deca0bce3e5cde4.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="在练习开始之前,我想先花一点时间,去解释正念的历史。", # 在config.md中为"正面的历史"
+                    wait_time=1.5,
+                    filename="6483c00b5fbb490f249f2ac7faa57663.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="让我们能够更好的使用它。",
+                    wait_time=1.5,
+                    filename="b4d5399dbfa9d31b0731728414efa079.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="作为中国人我们对正念其实并不陌生。",
+                    wait_time=1.5,
+                    filename="e7f303c7abdd87c5b0bc50c527704007.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="正念的概念来自于佛教。",
+                    wait_time=1.5,
+                    filename="d092e7e3ce2ae5005a7b386ccf82f6c9.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="佛这个词的本意是醒来,也就是清醒，如实的看到这个世界。",
+                    wait_time=2, # 根据config.md "间隔2s"
+                    filename="6e6947299cc7990a4d76c859462a83a2.mp3"
+                )
+            ]
+        )
+    ),
+    MindfulnessIntroStateType.MINDFULNESS_INTRO_SPEECH_2: Actions(
+        action_feature="",
+        voice=VoiceSequence(
+            voices=[
+                VoiceAction(
+                    action="play",
+                    text="上世纪中叶,大量东方僧侣,将禅修练习带到欧美。",
+                    wait_time=1.5,
+                    filename="0a100c38a31bd14e4afcb42dc535c56a.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="西方学者很快发现,正念可以和宗教信仰剥离,成为一种单纯的心智训练法。",
+                    wait_time=1.5,
+                    filename="c76805cf462d8a11e02cebefdd3afb69.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="于是,大量研究在脑神经科学,心理学等领域,如火如荼的展开。",
+                    wait_time=1.5,
+                    filename="fca399bb69a60d9a5c9b28656ef14c02.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="那么到底什么是正念呢?", # 在config.md中为"那么到底什么是正念呢"
+                    wait_time=1.5,
+                    filename="31e9d4ec71fd3a2309ca56d35c48f4b6.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="正面的正,不是指与错误相反的正,而是正式、如实的意思,它翻译自梵文的Samyak,意思是完全的自足的,正的意思,是只见生命的本来面目。",
+                    wait_time=1.5,
+                    filename="15fb380bbc809a10ddb2144c3a445be4.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="正念的念,出自于古印度巴利文的Sati,意思是心智的觉知,正和念连起来,就是完整的,如实的觉察当下的境遇,见山是山,见水是水。",
+                    wait_time=1.5,
+                    filename="3590998dc53181e94eac84723aa15568.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="是一种很美妙的状态,就好像你在喝一杯茶,你不仅对手中,也对周边整个环境,和你喝茶的人一清二楚。",
+                    wait_time=1.5,
+                    filename="023ea57cd20d7da13167818f0e29ca95.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="因此,你可以信赖你正在做的事,而不感到危险。",
+                    wait_time=1.5,
+                    filename="b51a28f5bdfc8caf76a848d377fc19c8.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="通过完整的觉察,你创造出更广阔、更开放的空间,于是你得以安心。",
+                    wait_time=1.5,
+                    filename="382fd2c25b11b83bb6730d6065192944.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="也许你听过别人说,正念能够帮你减压专注,还能治疗失眠。",
+                    wait_time=1.5,
+                    filename="3dd06ae6c1526007880c4fbd2b74bc52.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="但这些效果,只是练习的副产品。",
+                    wait_time=1.5,
+                    filename="a71b7fe0c5bb70f9fb9075a0a107b61e.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="正念的意义远远大于此。",
+                    wait_time=1.5,
+                    filename="d293bbef441d8e5459f67726cbdf5244.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="今天练习真正的价值,在于,让你发现自己的内心中,有着了不起的东西,而你是了不起的人。",
+                    wait_time=1.5,
+                    filename="55d17604a524791e748ff38b91361dd4.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="最后,我想请你问自己一个问题。",
+                    wait_time=1.5,
+                    filename="28ff50e364b7801288de8ea1a5fa9207.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="你是否想要醒来,如实的面对人生?",
+                    wait_time=1.5,
+                    filename="3a9221ba114131762c58e058d16b1a52.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="是否愿意卸下面具,敞开自己?",
+                    wait_time=1.5,
+                    filename="9304d2524ebdd1902ecd64bf14942657.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="如果你的答案,是肯定的,那么恭喜你,你找到了正念,这位可靠的同盟。",
+                    wait_time=1.5,
+                    filename="f1c7cdf03a1033d398e74e94cf96e099.mp3"
+                ),
+                VoiceAction(
+                    action="play",
+                    text="我在接下来的练习中等着你。",
+                    wait_time=3, # 根据config.md "结束 | 3秒"
+                    filename="d599eda3028119b48e00efde85fd6215.mp3"
+                )
+            ]
+        )
+    ),
+    MindfulnessIntroStateType.MINDFULNESS_INTRO_SEQUENCE_END: Actions(
+        action_feature="",
+        voice=VoiceSequence(
+            voices=[] # 序列结束，无语音
+        )
+    ),
+}

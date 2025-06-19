@@ -10,13 +10,14 @@ import asyncio
 from collections import defaultdict
 import enum
 from aivc.chat.message_manager import MessageManager
-from aivc.chat.sleep_handler import handler_robot_report
-from aivc.common.sleep_config import states_dict,StateType
+from aivc.sop.common.handler import handler_state_report
+from aivc.sop.sleep.config import states_dict,SleepStateType
 from aivc.data.db.trace_log import save_trace
 from aivc.data.db.pg_engine import engine
 from sqlmodel import Session
 from aivc.common.task_class import QuestionType
-from aivc.chat.sleep_state import SleepMonitor
+from aivc.sop.sleep.state import SleepMonitor
+from aivc.api.command import handle_command_request
 
 
 router = APIRouter()
@@ -39,7 +40,7 @@ async def ws(websocket: WebSocket):
 
                 if method != VCMethod.PING:
                     recv_msg_str = f"--*--ws message recv--*-- rmt: {websocket.client.host}:{websocket.client.port}"
-                    if method == VCMethod.VOICE_CHAT:
+                    if method in [VCMethod.VOICE_CHAT, VCMethod.COMMAND]:
                         req = Req[VCReqData](**req_data)
                         recv_msg_str += f"req: {req}"
                     elif method == VCMethod.REPORT_STATE:
@@ -75,6 +76,49 @@ class WebSocketState(enum.Enum):
     DISCONNECTED = 2
     RESPONSE = 3
 
+async def handle_voice_chat_request(
+    websocket: WebSocket,
+    req_data: dict,
+    message_id: str,
+    conversation_id: str
+):
+    """处理语音聊天请求"""
+    req = Req[VCReqData](**req_data)
+    trace_tree = TraceTree(
+        root = TraceRoot(
+            client_addr=f"{websocket.client.host}:{websocket.client.port}",
+            method=req.method,
+            conversation_id=req.conversation_id,
+            message_id=req.message_id,
+            req_timestamp=req.timestamp
+        )
+    )
+
+    # 打断睡眠状态
+    await SleepMonitor().interrupt_sleep(req.conversation_id)
+
+    async for resp in voice_chat_ws(req=req, trace_tree=trace_tree):
+        # 是否是最新的请求
+        is_latest, latest_id = await MessageManager().is_latest_message(resp.conversation_id, resp.message_id)
+        if not is_latest:
+            L.debug(f"MessageManager drop websocket message conversation_id: {resp.conversation_id} message_id: {resp.message_id} latest_id:{latest_id} client: {websocket.client.host}:{websocket.client.port}")
+            continue
+    
+        try:
+            send_result = await websocket.send_json(resp.model_dump())
+            L.debug(f"--*--ws message resp--*-- rmt: {websocket.client.host}:{websocket.client.port} message_id: {message_id} conversation_id: {conversation_id} resp: {resp} send_result: {send_result}")
+
+            # 更新TTS响应的发送时间
+            for trace_tts_resp in trace_tree.tts.resp_list:
+                if resp and resp.data and isinstance(resp.data, VCRespData) and trace_tts_resp.stream_seq == resp.data.stream_seq:
+                    trace_tts_resp.send_timestamp = datetime.now().strftime("%H:%M:%S.%f")[:-3]
+
+            await send_read_sleep_action(websocket,resp)
+        except WebSocketDisconnect:
+            L.info(f"WebSocket disconnected {websocket.client.host:}:{websocket.client.port}")
+        except Exception as err:
+            L.error(f"Error sending message: {str(err)} stack: {traceback.format_exc()} message_id: {message_id}")
+
 async def process_request(
     websocket: WebSocket, 
     req_data: dict, 
@@ -86,52 +130,18 @@ async def process_request(
     
     try:
         if method == VCMethod.VOICE_CHAT:
-            req = Req[VCReqData](**req_data)
-            trace_tree = TraceTree(
-                root = TraceRoot(
-                    client_addr=f"{websocket.client.host}:{websocket.client.port}",
-                    method=req.method,
-                    conversation_id=req.conversation_id,
-                    message_id=req.message_id,
-                    req_timestamp=req.timestamp
-                )
-            )
-
-            # 打断睡眠状态
-            await SleepMonitor().interrupt_sleep(req.conversation_id)
-
-            async for resp in voice_chat_ws(req=req, trace_tree=trace_tree):
-                # 是否是最新的请求
-                is_latest, latest_id = await MessageManager().is_latest_message(resp.conversation_id, resp.message_id)
-                if not is_latest:
-                    L.debug(f"MessageManager drop websocket message conversation_id: {resp.conversation_id} message_id: {resp.message_id} latest_id:{latest_id} client: {websocket.client.host}:{websocket.client.port}")
-                    continue
-            
-                try:
-                    send_result = await websocket.send_json(resp.model_dump())
-                    L.debug(f"--*--ws message resp--*-- rmt: {websocket.client.host}:{websocket.client.port} message_id: {message_id} conversation_id: {conversation_id} resp: {resp} send_result: {send_result}")
-
-                    # 更新TTS响应的发送时间
-                    for trace_tts_resp in trace_tree.tts.resp_list:
-                        if resp and resp.data and isinstance(resp.data, VCRespData) and trace_tts_resp.stream_seq == resp.data.stream_seq:
-                            trace_tts_resp.send_timestamp = datetime.now().strftime("%H:%M:%S.%f")[:-3]
-
-                    await send_read_sleep_action(websocket,resp)
-                except WebSocketDisconnect:
-                    L.info(f"WebSocket disconnected {websocket.client.host:}:{websocket.client.port}")
-                except Exception as err:
-                    L.error(f"Error sending message: {str(err)} stack: {traceback.format_exc()} message_id: {message_id}")
+            await handle_voice_chat_request(websocket, req_data, message_id, conversation_id)
+        elif method == VCMethod.COMMAND:
+            resp = await handle_command_request(websocket, req_data, message_id, conversation_id)
+            await send_ws_message(websocket, resp, message_id, conversation_id)
         elif method == VCMethod.REPORT_STATE:
-            resp = await handler_robot_report(
+            resp = await handler_state_report(
                 req_data=req_data,
                 client_addr=f"{websocket.client.host}:{websocket.client.port}")
-            
-            L.debug(f"--*--ws message resp--*-- rmt: {websocket.client.host}:{websocket.client.port} message_id: {message_id} conversation_id: {conversation_id} resp: {resp.__str__()} websocket.client_state.name:{websocket.client_state.name} {WebSocketState.CONNECTED.name}")
-
-            await send_ws_message(websocket, resp, message_id)
+            await send_ws_message(websocket, resp, message_id, conversation_id)
         else:
             resp = await handle_text_request(req_data)
-            await send_ws_message(websocket, resp, message_id)
+            await send_ws_message(websocket, resp, message_id, conversation_id)
     except Exception as e:
         L.warning(f"Error processing request: {str(e)} stack: {traceback.format_exc()}")
         if websocket.client_state.name == WebSocketState.CONNECTED.name:
@@ -143,16 +153,19 @@ async def process_request(
                 code=500,
                 message=str(e)
             )
-            await send_ws_message(websocket, error_resp, message_id)
+            await send_ws_message(websocket, error_resp, message_id, conversation_id)
     finally:
         # 任务完成后清理
         if message_id in running_tasks[conversation_id]:
             del running_tasks[conversation_id][message_id]
 
-async def send_ws_message(websocket: WebSocket, resp: typing.Any, message_id: str):
+async def send_ws_message(websocket: WebSocket, resp: typing.Any, message_id: str, conversation_id: str=""):
     try:
         send_json = resp.model_dump() if hasattr(resp, 'model_dump') else resp
         await websocket.send_json(send_json)
+        if "'method': 'pong'" in resp.__str__():
+            return  # 如果是ping的响应，不需要记录日志
+        L.debug(f"--*--ws message resp--*-- rmt: {websocket.client.host}:{websocket.client.port} message_id: {message_id} conversation_id: {conversation_id} resp: {resp.__str__()} websocket.client_state.name:{websocket.client_state.name} {WebSocketState.CONNECTED.name}")
     except WebSocketDisconnect:
         L.info(f"WebSocket disconnected {websocket.client.host:}:{websocket.client.port}")
     except Exception as err:
@@ -162,7 +175,7 @@ async def send_read_sleep_action(websocket: WebSocket,resp:Resp):
     # 检查action是否是QuestionType.SLEEP_ASSISTANT
     if resp and resp.data and resp.data.action == QuestionType.SLEEP_ASSISTANT.value:
         L.debug(f"send_read_sleep_action conversation_id: {resp.conversation_id} message_id: {resp.message_id}")
-        current_state = StateType.PREPARE
+        current_state = SleepStateType.PREPARE
         actions = states_dict.get(current_state)
     
         action_rsp = Resp[ActionRespData](

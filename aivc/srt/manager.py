@@ -3,6 +3,7 @@ from aivc.srt.providers.xunfei import XunFeiSRT
 from aivc.srt.providers.doubao import DoubaoSRT
 from aivc.srt.providers.google import GoogleSRT
 from aivc.srt.providers.microsoft import MicrosoftSRT
+from aivc.srt.providers.rknn import RknnSRT
 from typing import Type
 from aivc.srt.base import BaseSRT
 
@@ -11,6 +12,7 @@ class SRTType(Enum):
     DOUBAO = DoubaoSRT
     GOOGLE = GoogleSRT
     MICROSOFT = MicrosoftSRT
+    RKNN = RknnSRT
 
     @classmethod
     def from_str(cls, value: str) -> 'SRTType':
@@ -30,6 +32,7 @@ class SRTManager:
         SRTType.DOUBAO: DoubaoSRT,
         SRTType.GOOGLE: GoogleSRT,
         SRTType.MICROSOFT: MicrosoftSRT,
+        SRTType.RKNN: RknnSRT,
     }
 
     @staticmethod

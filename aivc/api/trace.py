@@ -184,6 +184,7 @@ async def get_traces(request: TraceLogRequest):
     
     # 按时间倒序排序
     query = query.order_by(TraceLog.ts.desc())
+    L.debug(f"Executing query: {query}")
     
     with Session(engine) as session:
         # 计算总数
@@ -192,6 +193,7 @@ async def get_traces(request: TraceLogRequest):
         # 分页
         query = query.offset((request.page - 1) * request.page_size).limit(request.page_size)
         items = session.exec(query).all()
+        L.debug(f"Total items: {total}, Page: {request.page}, Page Size: {request.page_size}, Items: {len(items)}")
         
         # 转换结果
         response_items = [convert_to_trace_log_response(item) for item in items]

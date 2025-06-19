@@ -50,8 +50,8 @@ class DoubaoLMTTS(BaseTTS):
             raise ValueError(f"Environment variable {self.ACCESS_TOKEN_ENV_KEY} is not set.")
         return access_token
 
-    def _build_request(self, text: str, audio_format: str="mp3",compression_rate:int=10, speed_ratio:float = 1.0) -> dict:
-        return {
+    def _build_request(self, text: str, audio_format: str="mp3",compression_rate:int=10, speed_ratio:float = 1.0, text_type:str = None) -> dict:
+        reuest = {
             "app": {
                 "appid": self.appid,
                 "token": "access_token",  
@@ -68,11 +68,16 @@ class DoubaoLMTTS(BaseTTS):
             "request": {
                 "reqid": str(uuid.uuid4()),
                 "text": text,
-                "operation": "query", 
+                "operation": "query",
             }
         }
 
-    async def tts(self, text: str, audio_format: str="mp3", compression_rate:int=10, speed_ratio:float = 0.8) -> TTSRsp:
+        if text_type:
+            reuest["request"]["text_type"] = text_type
+
+        return reuest
+
+    async def tts(self, text: str, audio_format: str="mp3", compression_rate:int=10, speed_ratio:float = 0.8, text_type:str = None) -> TTSRsp:
         try:
             start_time = time.perf_counter()
             
@@ -80,7 +85,8 @@ class DoubaoLMTTS(BaseTTS):
                 text=text, 
                 audio_format=audio_format,
                 compression_rate=compression_rate,
-                speed_ratio=speed_ratio)
+                speed_ratio=speed_ratio,
+                text_type=text_type)
             L.debug(f"doubao tts req: {json.dumps(request_json, indent=2, ensure_ascii=False)} trace_sn:{self.trace_sn}")
             
             async with aiohttp.ClientSession() as session:

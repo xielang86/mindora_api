@@ -44,3 +44,9 @@ google-cloud-speech
 azure-cognitiveservices-speech
 google-genai
 google-cloud-texttospeech
+
+
+gradio
+librosa
+
+rknn-toolkit2

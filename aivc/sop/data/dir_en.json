@@ -1,0 +1,260 @@
+[
+  {
+    "name": "meditation",
+    "children": [
+      {
+        "name": "mindfulness",
+        "children": [
+          {
+            "name": "breathing_exercises",
+            "children": [
+              {
+                "name": "natural"
+              },
+              {
+                "name": "abdominal"
+              },
+              {
+                "name": "box"
+              },
+              {
+                "name": "ocean"
+              },
+              {
+                "name": "4_7_8"
+              }
+            ]
+          },
+          {
+            "name": "scanning",
+            "children": [
+              {
+                "name": "full_body"
+              },
+              {
+                "name": "pain_relief"
+              },
+              {
+                "name": "localized_relaxation"
+              },
+              {
+                "name": "energy_ball"
+              }
+            ]
+          },
+          {
+            "name": "awareness",
+            "children": [
+              {
+                "name": "five_senses"
+              },
+              {
+                "name": "sitting"
+              },
+              {
+                "name": "sound"
+              }
+            ]
+          },
+          {
+            "name": "imagination",
+            "children": [
+              {
+                "name": "safe_place"
+              },
+              {
+                "name": "light_bath"
+              },
+              {
+                "name": "thoughts_as_clouds"
+              }
+            ]
+          },
+          {
+            "name": "emotions",
+            "children": [
+              {
+                "name": "labeling"
+              },
+              {
+                "name": "rain_recognition"
+              },
+              {
+                "name": "gratitude"
+              },
+              {
+                "name": "scan"
+              },
+              {
+                "name": "overcoming_fear"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "zen_meditation",
+        "children": [
+          {
+            "name": "zazen",
+            "children": [
+              {
+                "name": "music_playlist"
+              },
+              {
+                "name": "timer"
+              }
+            ]
+          },
+          {
+            "name": "vipassana",
+            "children": [
+              {
+                "name": "body"
+              },
+              {
+                "name": "breath"
+              },
+              {
+                "name": "emotions"
+              }
+            ]
+          },
+          {
+            "name": "resolving_doubts"
+          }
+        ]
+      },
+      {
+        "name": "transcendental_vedic",
+        "children": [
+          {
+            "name": "guided_energy_flow"
+          },
+          {
+            "name": "breathing_training",
+            "children": [
+              {
+                "name": "music_playlist"
+              },
+              {
+                "name": "timer"
+              }
+            ]
+          },
+          {
+            "name": "mantra_chanting"
+          },
+          {
+            "name": "custom_mantra_practice"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "sleep",
+    "children": [
+      {
+        "name": "yoga_nidra",
+        "children": [
+          {
+            "name": "deep_sleep"
+          },
+          {
+            "name": "peaceful_sleep"
+          },
+          {
+            "name": "warm_slumber"
+          },
+          {
+            "name": "mind_body_cleanse"
+          },
+          {
+            "name": "moonlight_power"
+          },
+          {
+            "name": "dream_wish"
+          }
+        ]
+      },
+      {
+        "name": "training",
+        "children": [
+          {
+            "name": "stress_release"
+          },
+          {
+            "name": "unwind"
+          },
+          {
+            "name": "clear_mind"
+          },
+          {
+            "name": "soothe_tension"
+          },
+          {
+            "name": "inner_peace"
+          },
+          {
+            "name": "whole_self"
+          },
+          {
+            "name": "self_care"
+          }
+        ]
+      },
+      {
+        "name": "dreamscapes",
+        "children": [
+          {
+            "name": "voyager_1"
+          },
+          {
+            "name": "beach"
+          },
+          {
+            "name": "wheat_field"
+          },
+          {
+            "name": "fireplace"
+          },
+          {
+            "name": "courtyard"
+          },
+          {
+            "name": "counting_sheep"
+          }
+        ]
+      },
+      {
+        "name": "recovery",
+        "children": [
+          {
+            "name": "insomnia"
+          },
+          {
+            "name": "after_nightmare"
+          },
+          {
+            "name": "back_to_sleep"
+          }
+        ]
+      },
+      {
+        "name": "natural",
+        "children": [
+          {
+            "name": "nap"
+          },
+          {
+            "name": "mind_unwind"
+          },
+          {
+            "name": "sweet_dreams"
+          }
+        ]
+      }
+    ]
+  }
+]

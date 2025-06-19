@@ -14,6 +14,8 @@ from aivc.chat.llm.providers.siliconflow import SiliconFlowLLM
 from aivc.chat.llm.providers.step import StepLLM
 from aivc.chat.llm.providers.baichuan import BaiChuanLLM
 from aivc.chat.llm.providers.google import GoogleLLM
+from aivc.chat.llm.providers.llama import LlamaLLM
+from aivc.chat.llm.providers.rknn import RKNLLM
 from pydantic import BaseModel, field_validator
 from transformers import AutoTokenizer
 import tiktoken
@@ -31,6 +33,8 @@ class LLMType(Enum):
     STEP = StepLLM.PROVIDER
     BAICHUAN = BaiChuanLLM.PROVIDER
     GOOGLE = GoogleLLM.PROVIDER
+    LLAMA = LlamaLLM.PROVIDER
+    RKNN = RKNLLM.PROVIDER
     
     @classmethod
     def from_str(cls, value: str) -> 'LLMType':
@@ -69,7 +73,9 @@ class LLMManager:
         LLMType.SILICON: SiliconFlowLLM,
         LLMType.STEP: StepLLM,
         LLMType.BAICHUAN: BaiChuanLLM,
-        LLMType.GOOGLE: GoogleLLM
+        LLMType.GOOGLE: GoogleLLM,
+        LLMType.LLAMA: LlamaLLM,
+        LLMType.RKNN: RKNLLM
     }
 
     @staticmethod
@@ -101,8 +107,7 @@ class LLMManager:
     def get_token_length(cls, llm_type: LLMType, text: str):
         if llm_type in [LLMType.OPENAI, LLMType.OLLAMA]:
             return cls.get_token_length_tiktoken(text)
-        # 忽略本地模型计算长度，粗略估计
-        # return cls.get_token_length_zh(text)
+        # 包括 RKNN 在内的本地模型使用粗略估计
         return int(len(text)*0.7)
         
     @classmethod
@@ -134,4 +139,3 @@ class Model(BaseModel):
     
     class Config:
         use_enum_values = True
- 

@@ -172,7 +172,7 @@ async def audio_handler(
 
     # 语音识别
     if req.data.content_type == ContentType.AUDIO.value:
-        srt = SRTManager.create_srt(srt_type=SRTType.DOUBAO)
+        srt = SRTManager.create_srt(srt_type=SRTType.XUNFEI)
         srt_rsp: SRTRsp = await srt.recognize(audio_path=file_path, message_id=trace_sn)
         
         trace_srt = TraceSRT(
@@ -243,9 +243,11 @@ async def audio_handler(
     if isinstance(route.kb_result, KBSearchResult):
         L.debug(f"voice_chat kb_result trace_sn:{trace_sn} category_name:{route.kb_result.category_name}")
         cmd_manager = CmdParamsManager.get_instance()
-        if cmd_manager.is_cmd_question_type(route.kb_result.category_name):
+        if QuestionType.is_cmd_by_value(route.kb_result.category_name):
             # 设备控制命令
-            action_param = cmd_manager.get_action_params(route.kb_result.category_name)
+            action_param = cmd_manager.get_action_params(
+                question_type_value = route.kb_result.category_name,
+                params=route.kb_result.params)
             text, audio_filename = cmd_manager.get_cmd_response(route.kb_result.category_name)
             rsp = TTSRsp(
                 action="cmd",
@@ -339,7 +341,7 @@ async def audio_handler(
                 L.debug(f"voice_chat weather trace_sn:{trace_sn} location:{location} weath:{weath} get_location cost:{location_cost}ms get_weather cost:{int((time.perf_counter() - start_time) * 1000)}ms")
                 
                 # 生成question
-                question_rag = f"今天是{datetime.now().strftime('%Y年%m月%d日')} 最近7天天气预报如下: {weath} 根据已知信息，回答如下问题: {question}"
+                question_rag = f"今天是{datetime.now().strftime('%Y年%m月%d日')} 天气预报如下: {weath} 根据已知信息，回答如下问题: {question}"
             except Exception as e:
                 L.error(f"voice_chat weather error trace_sn:{trace_sn} error:{e} stack:{traceback.format_exc()}")
                 question_rag = question

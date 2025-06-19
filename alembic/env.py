@@ -3,7 +3,7 @@ from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 from alembic import context
 from aivc.config.config import settings
-from aivc.common.kb import QuestionCategory, Question
+from aivc.common.kb import QuestionCategory, Question, QuestionV2
 from aivc.common.chat import Conversation
 from aivc.common.trace_log import TraceLog
 
@@ -22,6 +22,7 @@ if config.config_file_name is not None:
 # target_metadata = mymodel.Base.metadata
 target_metadata = QuestionCategory.metadata
 target_metadata = Question.metadata
+target_metadata = QuestionV2.metadata # 添加 QuestionV2.metadata
 target_metadata = Conversation.metadata
 target_metadata = TraceLog.metadata
 

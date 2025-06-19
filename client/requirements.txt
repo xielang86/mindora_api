@@ -1,0 +1,7 @@
+#brew install portaudio
+pyaudio
+webrtcvad
+websockets
+opencv-python
+soundfile
+sounddevice

@@ -34,18 +34,6 @@ def local_addresses():
 
     return m
 
-def get_eip():
-    url = "https://urtc.com.cn/uschedule"
-    data = {"Action": "GetRequestIp"}
-    try:
-        response = requests.post(url, json=data, timeout=3)
-        ip = response.json().get("Ip", "")
-        print(f"GetEIP from {url}: {ip}")
-        return ip
-    except Exception as e:
-        print(f"GetEIP from {url} error: {e}")
-        return ""
-
 def get_eip_v0():
     url = "http://ipinfo.io/ip"
     print("GetEIP from", url)
@@ -58,9 +46,6 @@ def get_eip_v0():
         return "", err
 
 def get_ip():
-    eip = get_eip()
-    if eip:
-        return eip
     eip_v0 = get_eip_v0()
     if eip_v0[0]:
         return eip_v0[0]
