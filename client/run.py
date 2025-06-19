@@ -24,7 +24,7 @@ import json
 logger = logging.getLogger(__name__)
 
 class Client:
-    def __init__(self, ws_url: str = "ws://192.168.0.132:9001/ws", 
+    def __init__(self, ws_url: str = "ws://192.168.0.221:9001/ws", 
                  input_type: Literal["text", "sound"] = "text"):
         self.audio_handler = AudioHandler()
         self.ws_client = WSClient(ws_url, self.handle_message)
@@ -289,8 +289,8 @@ def main():
                        default='text',
                        help='Input type: text or sound (default: text)')
     parser.add_argument('--ws-url',
-                       default='ws://192.168.0.132:9001/ws',
-                       help='WebSocket server URL (default: ws://192.168.0.132:9001/ws)')
+                       default='ws://192.168.0.221:9001/ws',
+                       help='WebSocket server URL (default: ws://192.168.0.221:9001/ws)')
     
     args = parser.parse_args()
     

@@ -18,7 +18,7 @@ import json
 logger = logging.getLogger(__name__)
 
 class SleepAssistantClient:
-    def __init__(self, ws_url: str = "ws://192.168.0.132:9001/ws"):
+    def __init__(self, ws_url: str = "ws://192.168.0.221:9001/ws"):
         self.ws_client = WSClient(ws_url, self.handle_message)
         self.conversation_id = None
         self.running = False
